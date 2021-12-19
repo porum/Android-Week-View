@@ -17,39 +17,27 @@ internal class EventChipDrawer(
     private val backgroundPaint = Paint()
     private val borderPaint = Paint()
 
-    private val patternPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-
     internal fun draw(
         eventChip: EventChip,
         canvas: Canvas,
         textLayout: StaticLayout?
     ) = with(canvas) {
-        val entity = eventChip.event
+        val item = eventChip.item
         val bounds = eventChip.bounds
-        val cornerRadius = (entity.style.cornerRadius ?: viewState.eventCornerRadius).toFloat()
+        val cornerRadius = (item.style.cornerRadius ?: viewState.eventCornerRadius).toFloat()
 
-        val isBeingDragged = entity.id == viewState.dragState?.eventId
-        updateBackgroundPaint(entity, isBeingDragged, backgroundPaint)
+        val isBeingDragged = item.id == viewState.dragState?.eventId
+        updateBackgroundPaint(item, isBeingDragged, backgroundPaint)
         drawRoundRect(bounds, cornerRadius, cornerRadius, backgroundPaint)
 
-        val pattern = entity.style.pattern
-        if (pattern != null) {
-            drawPattern(
-                pattern = pattern,
-                bounds = eventChip.bounds,
-                isLtr = viewState.isLtr,
-                paint = patternPaint
-            )
-        }
-
-        val borderWidth = entity.style.borderWidth
+        val borderWidth = item.style.borderWidth
         if (borderWidth != null && borderWidth > 0) {
-            updateBorderPaint(entity, borderPaint)
+            updateBorderPaint(item, borderPaint)
             val borderBounds = bounds.insetBy(borderWidth / 2f)
             drawRoundRect(borderBounds, cornerRadius, cornerRadius, borderPaint)
         }
 
-        if (entity.isMultiDay && entity.isNotAllDay) {
+        if (item.isMultiDay && item.isNotAllDay) {
             drawCornersForMultiDayEvents(eventChip, cornerRadius)
         }
 
@@ -62,11 +50,11 @@ internal class EventChipDrawer(
         eventChip: EventChip,
         cornerRadius: Float
     ) {
-        val event = eventChip.event
+        val item = eventChip.item
         val bounds = eventChip.bounds
 
-        val isBeingDragged = event.id == viewState.dragState?.eventId
-        updateBackgroundPaint(event, isBeingDragged, backgroundPaint)
+        val isBeingDragged = item.id == viewState.dragState?.eventId
+        updateBackgroundPaint(item, isBeingDragged, backgroundPaint)
 
         if (eventChip.startsOnEarlierDay) {
             val topRect = RectF(bounds)
@@ -80,7 +68,7 @@ internal class EventChipDrawer(
             drawRect(bottomRect, backgroundPaint)
         }
 
-        if (event.style.borderWidth != null) {
+        if (item.style.borderWidth != null) {
             drawMultiDayBorderStroke(eventChip, cornerRadius)
         }
     }
@@ -89,14 +77,14 @@ internal class EventChipDrawer(
         eventChip: EventChip,
         cornerRadius: Float
     ) {
-        val event = eventChip.event
+        val item = eventChip.item
         val bounds = eventChip.bounds
 
-        val borderWidth = event.style.borderWidth ?: 0
+        val borderWidth = item.style.borderWidth ?: 0
         val borderStart = bounds.left + borderWidth / 2
         val borderEnd = bounds.right - borderWidth / 2
 
-        updateBorderPaint(event, backgroundPaint)
+        updateBorderPaint(item, backgroundPaint)
 
         if (eventChip.startsOnEarlierDay) {
             drawVerticalLine(
@@ -143,7 +131,7 @@ internal class EventChipDrawer(
             bounds.right - viewState.eventPaddingHorizontal
         }
 
-        val verticalOffset = if (eventChip.event.isAllDay) {
+        val verticalOffset = if (eventChip.item.isAllDay) {
             (bounds.height() - textLayout.height) / 2f
         } else {
             viewState.eventPaddingVertical.toFloat()
@@ -155,11 +143,11 @@ internal class EventChipDrawer(
     }
 
     private fun updateBackgroundPaint(
-        entity: ResolvedWeekViewEntity,
+        item: WeekViewItem,
         isBeingDragged: Boolean,
         paint: Paint
     ) = with(paint) {
-        color = entity.style.backgroundColor ?: viewState.defaultEventColor
+        color = item.style.backgroundColor ?: viewState.defaultEventColor
         isAntiAlias = true
         strokeWidth = 0f
         style = Paint.Style.FILL
@@ -172,12 +160,12 @@ internal class EventChipDrawer(
     }
 
     private fun updateBorderPaint(
-        entity: ResolvedWeekViewEntity,
+        item: WeekViewItem,
         paint: Paint
     ) = with(paint) {
-        color = entity.style.borderColor ?: viewState.defaultEventColor
+        color = item.style.borderColor ?: viewState.defaultEventColor
         isAntiAlias = true
-        strokeWidth = entity.style.borderWidth?.toFloat() ?: 0f
+        strokeWidth = item.style.borderWidth?.toFloat() ?: 0f
         style = Paint.Style.STROKE
     }
 }

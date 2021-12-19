@@ -10,8 +10,14 @@ import java.util.Calendar
  * Encapsulates all information necessary to render an entity in [WeekView]. This entity can be
  * either a [WeekViewEntity.Event] or a [WeekViewEntity.BlockedTime].
  */
+@Deprecated(
+    message = "Use WeekViewItem instead. This class will be removed in a future release.",
+)
 sealed class WeekViewEntity {
 
+    @Deprecated(
+        message = "Use WeekViewItem instead. This class will be removed in a future release.",
+    )
     data class Event<T> internal constructor(
         internal val id: Long = 0L,
         internal val titleResource: TextResource,
@@ -23,6 +29,9 @@ sealed class WeekViewEntity {
         internal val data: T
     ) : WeekViewEntity() {
 
+        @Deprecated(
+            message = "Use WeekViewItem instead. This class will be removed in a future release.",
+        )
         class Builder<T>(private val data: T) {
 
             private var id: Long? = null
@@ -100,6 +109,9 @@ sealed class WeekViewEntity {
         }
     }
 
+    @Deprecated(
+        message = "Use WeekViewItem instead. This class will be removed in a future release.",
+    )
     data class BlockedTime internal constructor(
         internal val id: Long = 0L,
         internal val titleResource: TextResource,
@@ -109,6 +121,9 @@ sealed class WeekViewEntity {
         internal val style: Style = Style()
     ) : WeekViewEntity() {
 
+        @Deprecated(
+            message = "Use WeekViewItem instead. This class will be removed in a future release.",
+        )
         class Builder {
 
             private var id: Long? = null
@@ -178,6 +193,9 @@ sealed class WeekViewEntity {
         }
     }
 
+    @Deprecated(
+        message = "Use WeekViewItem and WeekViewItem.Style instead. This class will be removed in a future release.",
+    )
     class Style internal constructor() {
 
         internal var textColorResource: ColorResource? = null
@@ -187,11 +205,13 @@ sealed class WeekViewEntity {
         internal var cornerRadiusResource: DimenResource? = null
         internal var pattern: Pattern? = null
 
+        @Deprecated(message = "Pattern is no longer rendered and will be removed in a future release.")
         sealed class Pattern {
 
             abstract val color: Int
             abstract val strokeWidth: Int
 
+            @Deprecated(message = "Pattern is no longer rendered and will be removed in a future release.")
             data class Lined(
                 @ColorInt override val color: Int,
                 @Dimension override val strokeWidth: Int,
@@ -203,6 +223,7 @@ sealed class WeekViewEntity {
                 }
             }
 
+            @Deprecated(message = "Pattern is no longer rendered and will be removed in a future release.")
             data class Dotted(
                 @ColorInt override val color: Int,
                 @Dimension override val strokeWidth: Int,
@@ -210,6 +231,9 @@ sealed class WeekViewEntity {
             ) : Pattern()
         }
 
+        @Deprecated(
+            message = "Use WeekViewItem and WeekViewItem.Style instead. This class will be removed in a future release.",
+        )
         class Builder {
 
             private val style = Style()

@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.alamkanak.weekview.WeekViewEntity
 import com.alamkanak.weekview.jsr310.WeekViewPagingAdapterJsr310
-import com.alamkanak.weekview.sample.data.model.CalendarEntity
+import com.alamkanak.weekview.sample.data.model.CalendarItem
 import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
 import com.alamkanak.weekview.sample.databinding.ActivityCustomFontBinding
 import com.alamkanak.weekview.sample.util.defaultDateTimeFormatter
@@ -35,7 +35,7 @@ class CustomFontActivity : AppCompatActivity() {
         binding.weekView.adapter = adapter
 
         viewModel.viewState.observe(this) { viewState ->
-            adapter.submitList(viewState.entities)
+            adapter.submitList(viewState.items)
         }
     }
 
@@ -46,12 +46,12 @@ class CustomFontActivity : AppCompatActivity() {
 
 private class CustomFontActivityWeekViewAdapter(
     private val loadMoreHandler: (List<YearMonth>) -> Unit
-) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
+) : WeekViewPagingAdapterJsr310<CalendarItem>() {
 
-    override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
+    override fun onCreateEntity(item: CalendarItem): WeekViewEntity = item.toWeekViewEntity()
 
-    override fun onEventClick(data: CalendarEntity) {
-        if (data is CalendarEntity.Event) {
+    override fun onEventClick(data: CalendarItem) {
+        if (data is CalendarItem.Event) {
             context.showToast("Clicked ${data.title}")
         }
     }
@@ -60,8 +60,8 @@ private class CustomFontActivityWeekViewAdapter(
         context.showToast("Empty view clicked at ${defaultDateTimeFormatter.format(time)}")
     }
 
-    override fun onEventLongClick(data: CalendarEntity) {
-        if (data is CalendarEntity.Event) {
+    override fun onEventLongClick(data: CalendarItem) {
+        if (data is CalendarItem.Event) {
             context.showToast("Long-clicked ${data.title}")
         }
     }

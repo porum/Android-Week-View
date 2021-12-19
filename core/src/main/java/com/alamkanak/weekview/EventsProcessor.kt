@@ -20,88 +20,142 @@ internal class EventsProcessor(
 ) {
 
     /**
-     * Updates the [EventsCache] with the provided [WeekViewEntity] elements and creates
-     * [EventChip]s.
+     * Updates the [EventsCache] with the provided [WeekViewItem] object and creates [EventChip]s.
      *
-     * @param entities The list of new [WeekViewEntity] elements
+     * @param items The list of new [WeekViewItem] objects
      * @param viewState The current [ViewState] of [WeekView]
      * @param onFinished Callback to inform the caller whether [WeekView] should invalidate.
      */
     fun submit(
-        entities: List<WeekViewEntity>,
+        items: List<WeekViewItem>,
         viewState: ViewState,
         onFinished: () -> Unit
     ) {
         backgroundExecutor.execute {
-            submitEntities(entities, viewState)
+            submitItems(items, viewState)
             mainThreadExecutor.execute {
                 onFinished()
             }
         }
     }
 
-    internal fun updateDraggedEntity(
-        event: ResolvedWeekViewEntity,
-        viewState: ViewState
+    /**
+     * Updates the [EventsCache] with the provided [WeekViewItem] object and creates [EventChip]s.
+     *
+     * @param items The list of new [WeekViewItem] objects
+     * @param viewState The current [ViewState] of [WeekView]
+     * @param onFinished Callback to inform the caller whether [WeekView] should invalidate.
+     */
+    @Deprecated(
+        message = "Remove once WeekViewEntity is fully deprecated.",
+    )
+    fun submitEntities(
+        items: List<WeekViewEntity>,
+        viewState: ViewState,
+        onFinished: () -> Unit,
     ) {
-        eventsCache.update(event)
-        eventChipsCache.remove(eventId = event.id)
+        backgroundExecutor.execute {
+            submitEntities(items, viewState)
+            mainThreadExecutor.execute {
+                onFinished()
+            }
+        }
+    }
 
-        val eventChips = eventChipsFactory.create(listOf(event), viewState)
-        eventChipsCache.addAll(eventChips)
+    internal fun updateDraggedItem(
+        updatedItem: WeekViewItem,
+        viewState: ViewState,
+    ) {
+        eventsCache.update(updatedItem)
+
+        val newEventChips = eventChipsFactory.create(listOf(updatedItem), viewState)
+        eventChipsCache.remove(eventId = updatedItem.id)
+        eventChipsCache.addAll(newEventChips)
+    }
+
+    @WorkerThread
+    private fun submitItems(
+        items: List<WeekViewItem>,
+        viewState: ViewState,
+    ) {
+        val processedItems = processItems(items)
+        eventsCache.update(processedItems)
+
+        if (eventsCache is SimpleEventsCache) {
+            submitEntitiesToSimpleCache(processedItems, viewState)
+        } else {
+            submitEntitiesToPagedCache(processedItems, viewState)
+        }
     }
 
     @WorkerThread
     private fun submitEntities(
         entities: List<WeekViewEntity>,
-        viewState: ViewState
+        viewState: ViewState,
     ) {
-        val resolvedEntities = entities.map { it.resolve(context) }
-        eventsCache.update(resolvedEntities)
+        val processedItems = entities
+            .map { it.resolve(context).toWeekViewItem() }
+
+        eventsCache.update(processedItems)
 
         if (eventsCache is SimpleEventsCache) {
-            submitEntitiesToSimpleCache(resolvedEntities, viewState)
+            submitEntitiesToSimpleCache(processedItems, viewState)
         } else {
-            submitEntitiesToPagedCache(resolvedEntities, viewState)
+            submitEntitiesToPagedCache(processedItems, viewState)
+        }
+    }
+
+    private fun processItems(items: List<WeekViewItem>): List<WeekViewItem> {
+        return items.map { item ->
+            item.copy(
+                title = item.title.processed,
+                subtitle = item.subtitle?.processed,
+                timing = when (val timing = item.timing) {
+                    is WeekViewItem.Timing.AllDay -> timing // Keep all-day events as-is
+                    is WeekViewItem.Timing.Bounded -> WeekViewItem.Timing.Bounded(
+                        startTime = timing.startTime.withLocalTimeZone(),
+                        endTime = timing.endTime.withLocalTimeZone(),
+                    )
+                }
+            )
         }
     }
 
     private fun submitEntitiesToSimpleCache(
-        entities: List<ResolvedWeekViewEntity>,
+        items: List<WeekViewItem>,
         viewState: ViewState,
     ) {
-        val eventChips = eventChipsFactory.create(entities, viewState)
+        val eventChips = eventChipsFactory.create(items, viewState)
         eventChipsCache.replaceAll(eventChips)
     }
 
     private fun submitEntitiesToPagedCache(
-        entities: List<ResolvedWeekViewEntity>,
+        items: List<WeekViewItem>,
         viewState: ViewState,
     ) {
-        val diffResult = performDiff(entities)
+        val diffResult = performDiff(items)
         eventChipsCache.removeAll(diffResult.itemsToRemove)
 
         val eventChips = eventChipsFactory.create(diffResult.itemsToAddOrUpdate, viewState)
         eventChipsCache.addAll(eventChips)
     }
 
-    private fun performDiff(newEntities: List<ResolvedWeekViewEntity>): DiffResult {
-        val existingEventChips = eventChipsCache.allEventChips
-        val existingEntities = existingEventChips.map { it.event }
+    private fun performDiff(items: List<WeekViewItem>): DiffResult {
+        val existingItems = eventChipsCache.allEventChips.map { it.item }
         return DiffResult.calculateDiff(
-            existingEntities = existingEntities,
-            newEntities = newEntities,
+            existingEntities = existingItems,
+            newEntities = items,
         )
     }
 
     data class DiffResult(
-        val itemsToAddOrUpdate: List<ResolvedWeekViewEntity>,
-        val itemsToRemove: List<ResolvedWeekViewEntity>,
+        val itemsToAddOrUpdate: List<WeekViewItem>,
+        val itemsToRemove: List<WeekViewItem>,
     ) {
         companion object {
             fun calculateDiff(
-                existingEntities: List<ResolvedWeekViewEntity>,
-                newEntities: List<ResolvedWeekViewEntity>,
+                existingEntities: List<WeekViewItem>,
+                newEntities: List<WeekViewItem>,
             ): DiffResult {
                 val existingEntityIds = existingEntities.map { it.id }
 

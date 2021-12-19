@@ -8,14 +8,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelLazy
 import androidx.lifecycle.ViewModelProvider
 import com.alamkanak.weekview.sample.data.EventsRepository
-import com.alamkanak.weekview.sample.data.model.CalendarEntity
+import com.alamkanak.weekview.sample.data.model.CalendarItem
 import java.time.LocalDateTime
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle.MEDIUM
 
 data class GenericViewState(
-    val entities: List<CalendarEntity> = emptyList()
+    val items: List<CalendarItem> = emptyList()
 )
 
 sealed class GenericAction {
@@ -32,19 +32,19 @@ class GenericViewModel(
     private val _actions = MutableLiveData<Event<GenericAction>>()
     val actions: LiveData<Event<GenericAction>> = _actions
 
-    private val currentEntities: List<CalendarEntity>
-        get() = _viewState.value?.entities.orEmpty()
+    private val currentItems: List<CalendarItem>
+        get() = _viewState.value?.items.orEmpty()
 
     fun fetchEvents(yearMonths: List<YearMonth>) {
         eventsRepository.fetch(yearMonths = yearMonths) { entities ->
-            val existingEntities = _viewState.value?.entities.orEmpty()
-            _viewState.value = GenericViewState(entities = existingEntities + entities)
+            val existingEntities = _viewState.value?.items.orEmpty()
+            _viewState.value = GenericViewState(items = existingEntities + entities)
         }
     }
 
     fun handleDrag(id: Long, newStartTime: LocalDateTime, newEndTime: LocalDateTime) {
-        val existingEntity = currentEntities
-            .filterIsInstance<CalendarEntity.Event>()
+        val existingEntity = currentItems
+            .filterIsInstance<CalendarItem.Event>()
             .first { it.id == id }
 
         val newEntity = existingEntity.copy(
@@ -57,28 +57,28 @@ class GenericViewModel(
     }
 
     private fun postDragNotification(
-        existingEntity: CalendarEntity.Event,
-        updatedEntity: CalendarEntity.Event,
+        existingItem: CalendarItem.Event,
+        updatedItem: CalendarItem.Event,
     ) {
-        val newDateTime = updatedEntity.startTime.format(DateTimeFormatter.ofLocalizedDateTime(MEDIUM))
+        val newDateTime = updatedItem.startTime.format(DateTimeFormatter.ofLocalizedDateTime(MEDIUM))
 
         val action = GenericAction.ShowSnackbar(
-            message = "Moved ${updatedEntity.title} to $newDateTime",
-            undoAction = { updateEntity(existingEntity) },
+            message = "Moved ${updatedItem.title} to $newDateTime",
+            undoAction = { updateEntity(existingItem) },
         )
         _actions.postEvent(action)
     }
 
-    private fun updateEntity(newEntity: CalendarEntity.Event) {
-        val updatedEntities = currentEntities.map { entity ->
-            if (entity is CalendarEntity.Event && entity.id == newEntity.id) {
-                newEntity
+    private fun updateEntity(newItem: CalendarItem.Event) {
+        val updatedEntities = currentItems.map { entity ->
+            if (entity is CalendarItem.Event && entity.id == newItem.id) {
+                newItem
             } else {
                 entity
             }
         }
 
-        _viewState.value = GenericViewState(entities = updatedEntities)
+        _viewState.value = GenericViewState(items = updatedEntities)
     }
 
     class Factory(private val eventsRepository: EventsRepository) : ViewModelProvider.Factory {

@@ -18,7 +18,7 @@ internal class DragHandler(
 
     private val executor = DragScrollExecutor()
 
-    private val draggedEvent: ResolvedWeekViewEntity?
+    private val draggedEvent: WeekViewItem?
         get() {
             val eventsCache = eventsCacheProvider() ?: return null
             val eventId = viewState.dragState?.eventId ?: return null
@@ -30,8 +30,8 @@ internal class DragHandler(
 
     fun startDragAndDrop(eventChip: EventChip, x: Float, y: Float) {
         viewState.dragState = DragState(
-            eventId = eventChip.eventId,
-            draggedEventStartTime = eventChip.event.startTime,
+            eventId = eventChip.itemId,
+            draggedEventStartTime = eventChip.item.timing.startTime,
             dragStartTime = requireNotNull(touchHandler.calculateTimeFromPoint(x, y)),
         )
 
@@ -84,13 +84,13 @@ internal class DragHandler(
 
     private fun updateDraggedEvent(newStartTime: Calendar) {
         val originalEvent = draggedEvent ?: return
-        val updatedEvent = originalEvent.createCopy(
+        val updatedEvent = originalEvent.copyWith(
             startTime = newStartTime,
-            endTime = newStartTime + Minutes(originalEvent.durationInMinutes),
+            endTime = newStartTime + Minutes(originalEvent.durationInMinutes)
         )
 
         val eventsProcessor = eventsProcessorProvider() ?: return
-        eventsProcessor.updateDraggedEntity(updatedEvent, viewState)
+        eventsProcessor.updateDraggedItem(updatedEvent, viewState)
     }
 
     private fun scrollIfNecessary(e: MotionEvent) {
@@ -116,7 +116,7 @@ internal class DragHandler(
             }
 
             val draggedEvent = draggedEvent ?: return@execute
-            updateDraggedEvent(newStartTime = draggedEvent.startTime - Minutes(15))
+            updateDraggedEvent(newStartTime = draggedEvent.timing.startTime - Minutes(15))
 
             val distance = viewState.hourHeight / 4f
             navigator.scrollVerticallyBy(distance = distance * (-1))
@@ -132,7 +132,7 @@ internal class DragHandler(
             }
 
             val draggedEvent = draggedEvent ?: return@execute
-            updateDraggedEvent(newStartTime = draggedEvent.startTime + Minutes(15))
+            updateDraggedEvent(newStartTime = draggedEvent.timing.startTime + Minutes(15))
 
             val distance = viewState.hourHeight / 4f
             navigator.scrollVerticallyBy(distance = distance)
@@ -142,9 +142,9 @@ internal class DragHandler(
     private fun scrollLeft() {
         executor.execute(delay = 600) {
             val draggedEvent = draggedEvent ?: return@execute
-            updateDraggedEvent(newStartTime = draggedEvent.startTime - Days(1))
+            updateDraggedEvent(newStartTime = draggedEvent.timing.startTime - Days(1))
 
-            val date = draggedEvent.startTime.atStartOfDay
+            val date = draggedEvent.timing.startTime.atStartOfDay
             navigator.scrollHorizontallyTo(date - Days(1))
         }
     }
@@ -152,9 +152,9 @@ internal class DragHandler(
     private fun scrollRight() {
         executor.execute(delay = 600) {
             val draggedEvent = draggedEvent ?: return@execute
-            updateDraggedEvent(newStartTime = draggedEvent.startTime + Days(1))
+            updateDraggedEvent(newStartTime = draggedEvent.timing.startTime + Days(1))
 
-            val date = draggedEvent.startTime.atStartOfDay
+            val date = draggedEvent.timing.startTime.atStartOfDay
             navigator.scrollHorizontallyTo(date + Days(1))
         }
     }

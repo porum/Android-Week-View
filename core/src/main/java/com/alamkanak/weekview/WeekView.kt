@@ -13,6 +13,7 @@ import android.view.View
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.RequiresApi
 import androidx.core.view.ViewCompat
+import java.lang.Exception
 import java.util.Calendar
 import kotlin.math.abs
 import kotlin.math.min
@@ -1404,14 +1405,14 @@ class WeekView @JvmOverloads constructor(
 
         internal fun handleClick(x: Float, y: Float): Boolean {
             val eventChip = findHitEvent(x, y) ?: return false
-            val data = findEventData(id = eventChip.eventId) ?: return false
+            val data = findEventData(id = eventChip.itemId) ?: return false
             onEventClick(data, eventChip.bounds)
             return true
         }
 
         internal fun handleLongClick(x: Float, y: Float): LongClickResult? {
             val eventChip = findHitEvent(x, y) ?: return null
-            val data = findEventData(id = eventChip.eventId) ?: return null
+            val data = findEventData(id = eventChip.itemId) ?: return null
             val handled = onEventLongClick(data, eventChip.bounds)
             return LongClickResult(eventChip = eventChip, handled = handled)
         }
@@ -1422,7 +1423,7 @@ class WeekView @JvmOverloads constructor(
                 candidates.isEmpty() -> null
                 // Two events hit. This is most likely because an all-day event was clicked, but a
                 // single event is rendered underneath it. We return the all-day event.
-                candidates.size == 2 -> candidates.first { it.event.isAllDay }.takeUnless { it.isHidden }
+                candidates.size == 2 -> candidates.first { it.item.isAllDay }.takeUnless { it.isHidden }
                 else -> candidates.first().takeUnless { it.isHidden }
             }
         }
@@ -1448,7 +1449,21 @@ class WeekView @JvmOverloads constructor(
         @Suppress("UNCHECKED_CAST")
         private fun findEventData(id: Long): T? {
             val match = eventsCache[id]
-            return (match as? ResolvedWeekViewEntity.Event<T>)?.data
+            return match?.data as? T
+        }
+
+        /**
+         * Called for each element of type [T] that was submitted to this adapter. This method must
+         * return a [WeekViewItem] that will be rendered in the [WeekView] that is associated with
+         * this adapter.
+         *
+         * @param item The item of type [T] that was submitted to [WeekView]
+         * @return A [WeekViewItem] that will be rendered in [WeekView]
+         */
+        open fun onCreateItem(item: T): WeekViewItem {
+            throw RuntimeException(
+                "You called submitList() on WeekView's adapter, but didn't implement onCreateItem()."
+            )
         }
 
         /**
@@ -1459,6 +1474,9 @@ class WeekView @JvmOverloads constructor(
          * @param item The item of type [T] that was submitted to [WeekView]
          * @return A [WeekViewEntity] that will be rendered in [WeekView]
          */
+        @Deprecated(
+            message = "Use onCreateItem instead to create a WeekViewItem.",
+        )
         abstract fun onCreateEntity(item: T): WeekViewEntity
 
         /**
@@ -1501,8 +1519,8 @@ class WeekView @JvmOverloads constructor(
 
             onDragAndDropFinished(
                 data = data,
-                newStartTime = match.startTime,
-                newEndTime = match.endTime,
+                newStartTime = match.timing.startTime,
+                newEndTime = match.timing.endTime,
             )
         }
 
@@ -1582,8 +1600,16 @@ class WeekView @JvmOverloads constructor(
         @PublicApi
         fun submitList(elements: List<T>) {
             val viewState = weekView?.viewState ?: return
-            val entities = elements.map(this::onCreateEntity)
-            eventsProcessor.submit(entities, viewState, onFinished = this::updateObserver)
+
+            try {
+                // The consumer is still using onCreateEntity instead of onCreateItem. Remove this
+                // try-catch once onCreateEntity is fully deprecated.
+                val items = elements.map(this::onCreateItem)
+                eventsProcessor.submit(items, viewState, onFinished = this::updateObserver)
+            } catch (e: Exception) {
+                val entities = elements.map(this::onCreateEntity)
+                eventsProcessor.submitEntities(entities, viewState, onFinished = this::updateObserver)
+            }
         }
     }
 
@@ -1614,8 +1640,16 @@ class WeekView @JvmOverloads constructor(
         @PublicApi
         fun submitList(elements: List<T>) {
             val viewState = weekView?.viewState ?: return
-            val entities = elements.map(this::onCreateEntity)
-            eventsProcessor.submit(entities, viewState, onFinished = this::updateObserver)
+
+            try {
+                // The consumer is still using onCreateEntity instead of onCreateItem. Remove this
+                // try-catch once onCreateEntity is fully deprecated.
+                val items = elements.map(this::onCreateItem)
+                eventsProcessor.submit(items, viewState, onFinished = this::updateObserver)
+            } catch (e: Exception) {
+                val entities = elements.map(this::onCreateEntity)
+                eventsProcessor.submitEntities(entities, viewState, onFinished = this::updateObserver)
+            }
         }
 
         /**

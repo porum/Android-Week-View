@@ -2,13 +2,13 @@ package com.alamkanak.weekview.sample.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.alamkanak.weekview.WeekViewEntity
+import com.alamkanak.weekview.WeekViewItem
 import com.alamkanak.weekview.jsr310.WeekViewPagingAdapterJsr310
 import com.alamkanak.weekview.jsr310.firstVisibleDateAsLocalDate
 import com.alamkanak.weekview.jsr310.scrollToDate
 import com.alamkanak.weekview.sample.R
-import com.alamkanak.weekview.sample.data.model.CalendarEntity
-import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
+import com.alamkanak.weekview.sample.data.model.CalendarItem
+import com.alamkanak.weekview.sample.data.model.toWeekViewItem
 import com.alamkanak.weekview.sample.databinding.ActivityStaticBinding
 import com.alamkanak.weekview.sample.util.defaultDateTimeFormatter
 import com.alamkanak.weekview.sample.util.genericViewModel
@@ -57,7 +57,7 @@ class StaticActivity : AppCompatActivity() {
         }
 
         viewModel.viewState.observe(this) { viewState ->
-            adapter.submitList(viewState.entities)
+            adapter.submitList(viewState.items)
         }
     }
 
@@ -79,12 +79,12 @@ class StaticActivity : AppCompatActivity() {
 private class StaticActivityWeekViewAdapter(
     private val rangeChangeHandler: (LocalDate, LocalDate) -> Unit,
     private val loadMoreHandler: (List<YearMonth>) -> Unit
-) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
+) : WeekViewPagingAdapterJsr310<CalendarItem>() {
 
-    override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
+    override fun onCreateItem(item: CalendarItem): WeekViewItem = item.toWeekViewItem(context)
 
-    override fun onEventClick(data: CalendarEntity) {
-        if (data is CalendarEntity.Event) {
+    override fun onEventClick(data: CalendarItem) {
+        if (data is CalendarItem.Event) {
             context.showToast("Clicked ${data.title}")
         }
     }
@@ -93,8 +93,8 @@ private class StaticActivityWeekViewAdapter(
         context.showToast("Empty view clicked at ${defaultDateTimeFormatter.format(time)}")
     }
 
-    override fun onEventLongClick(data: CalendarEntity) {
-        if (data is CalendarEntity.Event) {
+    override fun onEventLongClick(data: CalendarItem) {
+        if (data is CalendarItem.Event) {
             context.showToast("Long-clicked ${data.title}")
         }
     }

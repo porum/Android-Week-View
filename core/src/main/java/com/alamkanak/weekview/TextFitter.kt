@@ -10,7 +10,7 @@ internal class TextFitter(
     private val spannableStringBuilder = SpannableStringBuilder()
 
     fun fitAllDayEvent(eventChip: EventChip): StaticLayout {
-        val textPaint = viewState.getTextPaint(eventChip.event)
+        val textPaint = viewState.getTextPaint(eventChip.item)
         return eventChip.getText(includeSubtitle = false).toTextLayout(textPaint, width = Int.MAX_VALUE)
     }
 
@@ -19,7 +19,7 @@ internal class TextFitter(
     }
 
     private fun EventChip.fitText(availableWidth: Int, availableHeight: Int): StaticLayout {
-        val textPaint = viewState.getTextPaint(event)
+        val textPaint = viewState.getTextPaint(item)
 
         var text = getText(includeSubtitle = true)
         var textLayout = text.toTextLayout(textPaint, width = availableWidth)
@@ -47,11 +47,11 @@ internal class TextFitter(
     }
 
     private fun EventChip.getText(includeSubtitle: Boolean): CharSequence {
-        val subtitle = event.subtitle?.takeIf { event.isNotAllDay && includeSubtitle }
+        val subtitle = item.subtitle?.takeIf { item.isNotAllDay && includeSubtitle }
         return combineTitleAndSubtitle(
-            title = event.title,
+            title = item.title,
             subtitle = subtitle,
-            isMultiLine = event.isNotAllDay
+            isMultiLine = item.isNotAllDay,
         )
     }
 

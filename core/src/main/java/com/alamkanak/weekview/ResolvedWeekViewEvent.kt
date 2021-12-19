@@ -4,6 +4,7 @@ import android.content.Context
 import java.util.Calendar
 import kotlin.math.roundToInt
 
+@Deprecated(message = "Remove this soon.")
 internal sealed class ResolvedWeekViewEntity {
 
     internal abstract val id: Long
@@ -18,6 +19,7 @@ internal sealed class ResolvedWeekViewEntity {
         Period.fromDate(startTime)
     }
 
+    @Deprecated(message = "Remove this soon.")
     data class Event<T>(
         override val id: Long,
         override val title: CharSequence,
@@ -29,6 +31,7 @@ internal sealed class ResolvedWeekViewEntity {
         val data: T?
     ) : ResolvedWeekViewEntity()
 
+    @Deprecated(message = "Remove this soon.")
     data class BlockedTime(
         override val id: Long,
         override val title: CharSequence,
@@ -40,6 +43,7 @@ internal sealed class ResolvedWeekViewEntity {
         override val isAllDay: Boolean = false
     }
 
+    @Deprecated(message = "Remove this soon.")
     data class Style(
         val textColor: Int? = null,
         val backgroundColor: Int? = null,
@@ -126,3 +130,37 @@ internal fun WeekViewEntity.Style.resolve(
     borderWidth = borderWidthResource?.resolve(context),
     cornerRadius = cornerRadiusResource?.resolve(context)
 )
+
+internal fun ResolvedWeekViewEntity.toWeekViewItem(): WeekViewItem {
+    return WeekViewItem(
+        id = id,
+        title = title,
+        subtitle = subtitle,
+        timing = if (isAllDay) {
+            WeekViewItem.Timing.AllDay(
+                date = startTime.atStartOfDay,
+            )
+        } else {
+            WeekViewItem.Timing.Bounded(
+                startTime = startTime,
+                endTime = endTime,
+            )
+        },
+        style = WeekViewItem.Style(
+            textColor = style.textColor,
+            backgroundColor = style.backgroundColor,
+            borderColor = style.borderColor,
+            borderWidth = style.borderWidth,
+            cornerRadius = style.cornerRadius,
+        ),
+        configuration = WeekViewItem.Configuration(
+            respectDayGap = this is WeekViewEntity.Event<*>,
+            arrangement = when (this) {
+                is ResolvedWeekViewEntity.Event<*> -> WeekViewItem.Arrangement.Foreground
+                is ResolvedWeekViewEntity.BlockedTime -> WeekViewItem.Arrangement.Background
+            },
+            canBeDragged = this is WeekViewEntity.Event<*>,
+        ),
+        data = (this as? ResolvedWeekViewEntity.Event<*>)?.data,
+    )
+}

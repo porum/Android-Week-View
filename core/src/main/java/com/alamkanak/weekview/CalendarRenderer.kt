@@ -57,7 +57,7 @@ private class SingleEventsUpdater(
             }
 
             val eventChips = chipsCache?.normalEventChipsByDate(date).orEmpty().filter {
-                it.event.isWithin(viewState.minHour, viewState.maxHour)
+                it.item.isWithin(viewState.minHour, viewState.maxHour)
             }
 
             eventChips.calculateBounds(startPixel = modifiedStartPixel)
@@ -244,11 +244,19 @@ private class SingleEventsDrawer(
             return
         }
 
-        val sortedEventChips = eventChips.sortedBy {
-            it.event.id == viewState.dragState?.eventId
+        val (backgroundChips, foregroundChips) = eventChips.partition {
+            it.item.configuration.arrangement == WeekViewItem.Arrangement.Background
         }
 
-        for (eventChip in sortedEventChips) {
+        val draggedEventId = viewState.dragState?.eventId
+
+        val sortedChips = mutableListOf<EventChip>().apply {
+            // Make sure that the currently dragged chip is rendered above all other chips
+            this += backgroundChips.sortedBy { it.item.id == draggedEventId }
+            this += foregroundChips.sortedBy { it.item.id == draggedEventId }
+        }
+
+        for (eventChip in sortedChips) {
             val textLayout = eventLabels[eventChip.id]
             eventChipDrawer.draw(eventChip, canvas = this, textLayout)
         }

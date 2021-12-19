@@ -4,11 +4,11 @@ import android.graphics.RectF
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.alamkanak.weekview.WeekViewEntity
+import com.alamkanak.weekview.WeekViewItem
 import com.alamkanak.weekview.jsr310.WeekViewPagingAdapterJsr310
 import com.alamkanak.weekview.jsr310.setDateFormatter
-import com.alamkanak.weekview.sample.data.model.CalendarEntity
-import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
+import com.alamkanak.weekview.sample.data.model.CalendarItem
+import com.alamkanak.weekview.sample.data.model.toWeekViewItem
 import com.alamkanak.weekview.sample.databinding.ActivityBasicBinding
 import com.alamkanak.weekview.sample.util.GenericAction.ShowSnackbar
 import com.alamkanak.weekview.sample.util.defaultDateTimeFormatter
@@ -54,7 +54,7 @@ class BasicActivity : AppCompatActivity() {
         }
 
         viewModel.viewState.observe(this) { viewState ->
-            adapter.submitList(viewState.entities)
+            adapter.submitList(viewState.items)
         }
 
         viewModel.actions.subscribeToEvents(this) { action ->
@@ -73,12 +73,12 @@ class BasicActivity : AppCompatActivity() {
 private class BasicActivityWeekViewAdapter(
     private val dragHandler: (Long, LocalDateTime, LocalDateTime) -> Unit,
     private val loadMoreHandler: (List<YearMonth>) -> Unit
-) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
+) : WeekViewPagingAdapterJsr310<CalendarItem>() {
 
-    override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
+    override fun onCreateItem(item: CalendarItem): WeekViewItem = item.toWeekViewItem(context)
 
-    override fun onEventClick(data: CalendarEntity, bounds: RectF) {
-        if (data is CalendarEntity.Event) {
+    override fun onEventClick(data: CalendarItem, bounds: RectF) {
+        if (data is CalendarItem.Event) {
             context.showToast("Clicked ${data.title}")
         }
     }
@@ -87,8 +87,8 @@ private class BasicActivityWeekViewAdapter(
         context.showToast("Empty view clicked at ${defaultDateTimeFormatter.format(time)}")
     }
 
-    override fun onDragAndDropFinished(data: CalendarEntity, newStartTime: LocalDateTime, newEndTime: LocalDateTime) {
-        if (data is CalendarEntity.Event) {
+    override fun onDragAndDropFinished(data: CalendarItem, newStartTime: LocalDateTime, newEndTime: LocalDateTime) {
+        if (data is CalendarItem.Event) {
             dragHandler(data.id, newStartTime, newEndTime)
         }
     }

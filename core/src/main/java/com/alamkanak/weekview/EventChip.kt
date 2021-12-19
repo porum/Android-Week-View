@@ -4,12 +4,12 @@ import android.graphics.RectF
 import java.util.Calendar
 
 /**
- * This class encapsulates a [ResolvedWeekViewEntity] and its visual representation, a [RectF] which
- * is drawn to the screen. There may be more than one [EventChip] for any [ResolvedWeekViewEntity],
- * for instance in the case of multi-day events.
+ * This class encapsulates a [WeekViewItem] and its visual representation, a [RectF] which is drawn
+ * to the screen. There may be more than one [EventChip] for any [WeekViewItem], for instance in the
+ * case of multi-day events.
  */
 internal data class EventChip(
-    val event: ResolvedWeekViewEntity,
+    val item: WeekViewItem,
     val index: Int,
     val startTime: Calendar,
     val endTime: Calendar,
@@ -18,12 +18,12 @@ internal data class EventChip(
     /**
      * A unique ID of this [EventChip].
      */
-    val id: String = "${event.id}-$index"
+    val id: String = "${item.id}-$index"
 
     /**
-     * The ID of this [EventChip]'s [ResolvedWeekViewEntity].
+     * The ID of this [EventChip]'s [WeekViewItem].
      */
-    val eventId: Long = event.id
+    val itemId: Long = item.id
 
     /**
      * The bounds in which [EventChip] will be drawn.
@@ -62,10 +62,10 @@ internal data class EventChip(
     var minutesFromStartHour: Int = 0
 
     val startsOnEarlierDay: Boolean
-        get() = event.startTime < startTime
+        get() = item.timing.startTime < startTime
 
     val endsOnLaterDay: Boolean
-        get() = event.endTime > endTime
+        get() = item.timing.endTime > endTime
 
     fun setEmpty() {
         bounds.setEmpty()

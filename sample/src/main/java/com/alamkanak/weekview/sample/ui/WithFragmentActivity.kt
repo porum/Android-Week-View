@@ -6,13 +6,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import com.alamkanak.weekview.WeekViewEntity
+import com.alamkanak.weekview.WeekViewItem
 import com.alamkanak.weekview.jsr310.WeekViewPagingAdapterJsr310
 import com.alamkanak.weekview.jsr310.maxDateAsLocalDate
 import com.alamkanak.weekview.jsr310.minDateAsLocalDate
 import com.alamkanak.weekview.sample.R
-import com.alamkanak.weekview.sample.data.model.CalendarEntity
-import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
+import com.alamkanak.weekview.sample.data.model.CalendarItem
+import com.alamkanak.weekview.sample.data.model.toWeekViewItem
 import com.alamkanak.weekview.sample.databinding.FragmentWeekBinding
 import com.alamkanak.weekview.sample.util.genericViewModel
 import com.alamkanak.weekview.sample.util.setupWithWeekView
@@ -59,7 +59,7 @@ class WeekFragment : Fragment(R.layout.fragment_week) {
         binding.weekView.maxDateAsLocalDate = YearMonth.now().atEndOfMonth()
 
         viewModel.viewState.observe(viewLifecycleOwner) { viewState ->
-            adapter.submitList(viewState.entities)
+            adapter.submitList(viewState.items)
         }
     }
 
@@ -70,9 +70,9 @@ class WeekFragment : Fragment(R.layout.fragment_week) {
 
 private class FragmentWeekViewAdapter(
     private val loadMoreHandler: (List<YearMonth>) -> Unit
-) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
+) : WeekViewPagingAdapterJsr310<CalendarItem>() {
 
-    override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
+    override fun onCreateItem(item: CalendarItem): WeekViewItem = item.toWeekViewItem(context)
 
     override fun onLoadMore(
         startDate: LocalDate,

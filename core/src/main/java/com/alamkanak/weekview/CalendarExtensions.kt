@@ -310,7 +310,7 @@ internal fun Calendar.format(): String {
     return sdf.format(time)
 }
 
-fun Calendar.computeDifferenceWithFirstDayOfWeek(): Int {
+internal fun Calendar.computeDifferenceWithFirstDayOfWeek(): Int {
     val firstDayOfWeek = firstDayOfWeek
     return if (firstDayOfWeek == Calendar.MONDAY && dayOfWeek == Calendar.SUNDAY) {
         // Special case, because Calendar.MONDAY has constant value 2 and Calendar.SUNDAY has
@@ -321,7 +321,7 @@ fun Calendar.computeDifferenceWithFirstDayOfWeek(): Int {
     }
 }
 
-fun Calendar.previousFirstDayOfWeek(): Calendar {
+internal fun Calendar.previousFirstDayOfWeek(): Calendar {
     val result = this - Days(1)
     while (result.dayOfWeek != firstDayOfWeek) {
         result.add(Calendar.DATE, -1)
@@ -329,10 +329,26 @@ fun Calendar.previousFirstDayOfWeek(): Calendar {
     return result
 }
 
-fun Calendar.nextFirstDayOfWeek(): Calendar {
+internal fun Calendar.nextFirstDayOfWeek(): Calendar {
     val result = this + Days(1)
     while (result.dayOfWeek != firstDayOfWeek) {
         result.add(Calendar.DATE, 1)
     }
     return result
+}
+
+internal fun Calendar.limitToMinHour(minHour: Int): Calendar {
+    return if (hour < minHour) {
+        withTimeAtStartOfPeriod(hour = minHour)
+    } else {
+        this
+    }
+}
+
+internal fun Calendar.limitToMaxHour(maxHour: Int): Calendar {
+    return if (hour >= maxHour) {
+        withTimeAtEndOfPeriod(hour = maxHour)
+    } else {
+        this
+    }
 }

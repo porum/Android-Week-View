@@ -9,36 +9,44 @@ internal typealias EventChipsCacheProvider = () -> EventChipsCache?
 internal class EventChipsCache {
 
     val allEventChips: List<EventChip>
-        get() = normalEventChipsByDate.values.flatten() + allDayEventChipsByDate.values.flatten()
+        get() = chipsByDate.values.flatten()
 
-    private val normalEventChipsByDate = ConcurrentHashMap<Long, CopyOnWriteArrayList<EventChip>>()
-    private val allDayEventChipsByDate = ConcurrentHashMap<Long, CopyOnWriteArrayList<EventChip>>()
+    private val chipsByDate = ConcurrentHashMap<Long, CopyOnWriteArrayList<EventChip>>()
 
     fun allEventChipsInDateRange(
-        dateRange: List<Calendar>
+        dateRange: List<Calendar>,
     ): List<EventChip> {
         val results = mutableListOf<EventChip>()
         for (date in dateRange) {
-            results += allDayEventChipsByDate[date.atStartOfDay.timeInMillis].orEmpty()
-            results += normalEventChipsByDate[date.atStartOfDay.timeInMillis].orEmpty()
+            results += chipsByDate[date.atStartOfDay.timeInMillis].orEmpty()
         }
         return results
     }
 
     fun normalEventChipsByDate(
-        date: Calendar
-    ): List<EventChip> = normalEventChipsByDate[date.atStartOfDay.timeInMillis].orEmpty()
+        date: Calendar,
+    ): List<EventChip> = chipsByDate[date.atStartOfDay.timeInMillis].orEmpty().filter { it.item.isNotAllDay }
 
     fun allDayEventChipsByDate(
-        date: Calendar
-    ): List<EventChip> = allDayEventChipsByDate[date.atStartOfDay.timeInMillis].orEmpty()
+        date: Calendar,
+    ): List<EventChip> = chipsByDate[date.atStartOfDay.timeInMillis].orEmpty().filter { it.item.isAllDay }
 
-    fun allDayEventChipsInDateRange(
-        dateRange: List<Calendar>
+    fun normalEventChipsInDateRange(
+        dateRange: List<Calendar>,
     ): List<EventChip> {
         val results = mutableListOf<EventChip>()
         for (date in dateRange) {
-            results += allDayEventChipsByDate[date.atStartOfDay.timeInMillis].orEmpty()
+            results += normalEventChipsByDate(date)
+        }
+        return results
+    }
+
+    fun allDayEventChipsInDateRange(
+        dateRange: List<Calendar>,
+    ): List<EventChip> {
+        val results = mutableListOf<EventChip>()
+        for (date in dateRange) {
+            results += allDayEventChipsByDate(date)
         }
         return results
     }
@@ -50,20 +58,15 @@ internal class EventChipsCache {
 
     fun addAll(eventChips: List<EventChip>) {
         for (eventChip in eventChips) {
-            val isExistingEvent = allEventChips.any { it.eventId == eventChip.eventId }
-            if (isExistingEvent) {
-                remove(eventId = eventChip.eventId)
+            val isExistingChip = allEventChips.any { it.itemId == eventChip.itemId }
+            if (isExistingChip) {
+                remove(eventId = eventChip.itemId)
             }
         }
 
         for (eventChip in eventChips) {
             val key = eventChip.startTime.atStartOfDay.timeInMillis
-
-            if (eventChip.event.isAllDay) {
-                allDayEventChipsByDate.addOrReplace(key, eventChip)
-            } else {
-                normalEventChipsByDate.addOrReplace(key, eventChip)
-            }
+            chipsByDate.add(key, eventChip)
         }
     }
 
@@ -73,56 +76,42 @@ internal class EventChipsCache {
             candidates.isEmpty() -> null
             // Two events hit. This is most likely because an all-day event was clicked, but a
             // single event is rendered underneath it. We return the all-day event.
-            candidates.size == 2 -> candidates.first { it.event.isAllDay }
+            candidates.size == 2 -> candidates.first { it.item.isAllDay }
             else -> candidates.first()
         }
     }
 
     fun remove(eventId: Long) {
-        val eventChip = allEventChips.firstOrNull { it.eventId == eventId } ?: return
+        val eventChip = allEventChips.firstOrNull { it.itemId == eventId } ?: return
         remove(eventChip)
     }
 
-    fun removeAll(events: List<ResolvedWeekViewEntity>) {
+    fun removeAll(events: List<WeekViewItem>) {
         val eventIds = events.map { it.id }
-        val eventChips = allEventChips.filter { it.event.id in eventIds }
+        val eventChips = allEventChips.filter { it.item.id in eventIds }
         eventChips.forEach(this::remove)
     }
 
     private fun remove(eventChip: EventChip) {
         val key = eventChip.startTime.atStartOfDay.timeInMillis
-        val eventId = eventChip.eventId
-
-        if (eventChip.event.isAllDay) {
-            allDayEventChipsByDate[key]?.removeAll { it.event.id == eventId }
-        } else {
-            normalEventChipsByDate[key]?.removeAll { it.event.id == eventId }
-        }
+        val itemId = eventChip.itemId
+        chipsByDate[key]?.removeAll { it.itemId == itemId }
     }
 
     fun clearSingleEventsCache() {
-        allEventChips.filter { it.event.isNotAllDay }.forEach(EventChip::setEmpty)
+        allEventChips.filter { it.item.isNotAllDay }.forEach(EventChip::setEmpty)
     }
 
     fun clear() {
-        allDayEventChipsByDate.clear()
-        normalEventChipsByDate.clear()
+        chipsByDate.clear()
     }
+}
 
-    private fun ConcurrentHashMap<Long, CopyOnWriteArrayList<EventChip>>.addOrReplace(
-        key: Long,
-        eventChip: EventChip
-    ) {
-        val results = getOrElse(key) { CopyOnWriteArrayList() }
-        val indexOfExisting = results.indexOfFirst { it.event.id == eventChip.event.id }
-        if (indexOfExisting != -1) {
-            // If an event with the same ID already exists, replace it. The new event will likely be
-            // more up-to-date.
-            results.removeAt(indexOfExisting)
-            results.add(indexOfExisting, eventChip)
-        } else {
-            results.add(eventChip)
-        }
-        this[key] = results
-    }
+private fun ConcurrentHashMap<Long, CopyOnWriteArrayList<EventChip>>.add(
+    key: Long,
+    eventChip: EventChip,
+) {
+    val results = getOrElse(key) { CopyOnWriteArrayList() }
+    results.add(eventChip)
+    this[key] = results
 }

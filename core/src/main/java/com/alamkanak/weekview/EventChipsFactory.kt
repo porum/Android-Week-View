@@ -5,10 +5,24 @@ import java.util.Calendar
 internal class EventChipsFactory {
 
     fun create(
-        events: List<ResolvedWeekViewEntity>,
-        viewState: ViewState
+        items: List<WeekViewItem>,
+        viewState: ViewState,
     ): List<EventChip> {
-        val eventChips = convertEventsToEventChips(events, viewState)
+        val (backgroundItems, foregroundItems) = items.partition {
+            it.configuration.arrangement == WeekViewItem.Arrangement.Background
+        }
+
+        val backgroundChips = createInternal(backgroundItems, viewState)
+        val foregroundChips = createInternal(foregroundItems, viewState)
+
+        return backgroundChips + foregroundChips
+    }
+
+    private fun createInternal(
+        items: List<WeekViewItem>,
+        viewState: ViewState,
+    ): List<EventChip> {
+        val eventChips = convertEventsToEventChips(items, viewState)
         val groups = eventChips.groupedByDate().values
 
         for (group in groups) {
@@ -19,32 +33,28 @@ internal class EventChipsFactory {
     }
 
     private fun convertEventsToEventChips(
-        events: List<ResolvedWeekViewEntity>,
+        items: List<WeekViewItem>,
         viewState: ViewState
     ): List<EventChip> {
-        return events.sortedByTime().sanitize(viewState).toEventChips(viewState)
+        return items.sanitize(viewState).toEventChips(viewState)
     }
 
-    private fun List<ResolvedWeekViewEntity>.sortedByTime(): List<ResolvedWeekViewEntity> {
-        return sortedWith(compareBy({ it.startTime }, { it.endTime }))
-    }
-
-    private fun List<ResolvedWeekViewEntity>.sanitize(viewState: ViewState): List<ResolvedWeekViewEntity> {
+    private fun List<WeekViewItem>.sanitize(viewState: ViewState): List<WeekViewItem> {
         return map { it.sanitize(viewState) }
     }
 
-    private fun List<ResolvedWeekViewEntity>.toEventChips(viewState: ViewState): List<EventChip> {
-        return map { event ->
-            val eventParts = event.split(viewState)
+    private fun List<WeekViewItem>.toEventChips(viewState: ViewState): List<EventChip> {
+        return flatMap { item ->
+            val eventParts = item.split(viewState)
             eventParts.mapIndexed { index, eventPart ->
                 EventChip(
-                    event = event,
+                    item = item,
                     index = index,
-                    startTime = eventPart.startTime,
-                    endTime = eventPart.endTime,
+                    startTime = eventPart.timing.startTime,
+                    endTime = eventPart.timing.endTime,
                 )
             }
-        }.flatten()
+        }
     }
 
     /**
@@ -54,8 +64,8 @@ internal class EventChipsFactory {
      * @param eventChips A list of [EventChip]s
      */
     private fun computePositionOfEvents(eventChips: List<EventChip>, viewState: ViewState) {
-        val singleEventChips = eventChips.filter { it.event.isNotAllDay }
-        val allDayEventChips = eventChips.filter { it.event.isAllDay }
+        val singleEventChips = eventChips.filter { it.item.isNotAllDay }
+        val allDayEventChips = eventChips.filter { it.item.isAllDay }
 
         val singleEventGroups = singleEventChips.toMultiColumnCollisionGroups()
         val allDayGroups = if (viewState.arrangeAllDayEventsVertically) {
@@ -145,7 +155,7 @@ internal class EventChipsFactory {
     }
 
     private fun calculateMinutesFromStart(eventChip: EventChip, viewState: ViewState) {
-        if (eventChip.event.isAllDay) {
+        if (eventChip.item.isAllDay) {
             return
         }
 
@@ -197,7 +207,7 @@ internal class EventChipsFactory {
          * @return Whether a collision exists
          */
         fun collidesWith(eventChip: EventChip): Boolean {
-            return eventChips.any { it.event.collidesWith(eventChip.event) }
+            return eventChips.any { it.item.collidesWith(eventChip.item) }
         }
 
         fun add(eventChip: EventChip) {
@@ -230,7 +240,7 @@ internal class EventChipsFactory {
         operator fun get(index: Int): EventChip = eventChips[index]
 
         fun fits(eventChip: EventChip): Boolean {
-            return isEmpty || !eventChips.last().event.collidesWith(eventChip.event)
+            return isEmpty || !eventChips.last().item.collidesWith(eventChip.item)
         }
     }
 
@@ -255,9 +265,21 @@ internal class EventChipsFactory {
     }
 }
 
-private fun ResolvedWeekViewEntity.sanitize(viewState: ViewState): ResolvedWeekViewEntity {
-    return if (endTime.isAtStartOfPeriod(hour = viewState.minHour)) {
-        createCopy(endTime = endTime - Millis(1))
+private fun WeekViewItem.sanitize(viewState: ViewState): WeekViewItem {
+    return if (timing is WeekViewItem.Timing.Bounded) {
+        val shouldAdjustEndTime = timing.endTime.isAtStartOfPeriod(viewState.minHour)
+        val newEndTime = if (shouldAdjustEndTime) {
+            timing.endTime - Millis(1)
+        } else {
+            timing.endTime
+        }
+
+        copy(
+            timing = WeekViewItem.Timing.Bounded(
+                startTime = timing.startTime,
+                endTime = newEndTime,
+            )
+        )
     } else {
         this
     }

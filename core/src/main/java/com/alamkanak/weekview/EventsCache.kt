@@ -1,87 +1,71 @@
 package com.alamkanak.weekview
 
 import androidx.collection.ArrayMap
-import java.util.Calendar
 
 internal typealias EventsCacheProvider = () -> EventsCache?
 
 /**
- * An abstract class that provides functionality to cache [ResolvedWeekViewEntity] elements.
+ * An abstract class that provides functionality to cache [WeekViewItem] elements.
  */
 internal abstract class EventsCache {
 
-    abstract val allEvents: List<ResolvedWeekViewEntity>
-    abstract fun update(events: List<ResolvedWeekViewEntity>)
-    abstract fun update(event: ResolvedWeekViewEntity)
+    abstract val allEvents: List<WeekViewItem>
+
+    abstract fun update(events: List<WeekViewItem>)
+
+    abstract fun update(event: WeekViewItem)
+
     abstract fun clear()
 
-    operator fun get(id: Long): ResolvedWeekViewEntity? = allEvents.firstOrNull { it.id == id }
-
-    operator fun get(
-        dateRange: List<Calendar>
-    ): List<ResolvedWeekViewEntity> {
-        val startDate = checkNotNull(dateRange.minOrNull())
-        val endDate = checkNotNull(dateRange.maxOrNull())
-        return allEvents.filter { it.endTime >= startDate || it.startTime <= endDate }
-    }
-
-    operator fun get(
-        fetchRange: FetchRange
-    ): List<ResolvedWeekViewEntity> {
-        val startTime = fetchRange.previous.startDate
-        val endTime = fetchRange.next.endDate
-        return allEvents.filter { it.endTime >= startTime && it.startTime <= endTime }
-    }
+    operator fun get(id: Long): WeekViewItem? = allEvents.firstOrNull { it.id == id }
 }
 
 /**
- * Represents an [EventsCache] that relies on a simple list of [ResolvedWeekViewEntity] objects.
- * When updated with new [ResolvedWeekViewEntity] objects, all existing ones are replaced.
+ * Represents an [EventsCache] that relies on a simple list of [WeekViewItem] objects. When updated
+ * with new [WeekViewItem] objects, all existing ones are replaced.
  */
 internal class SimpleEventsCache : EventsCache() {
 
-    private var _allEvents: MutableList<ResolvedWeekViewEntity>? = null
+    override val allEvents = mutableListOf<WeekViewItem>()
 
-    override val allEvents: List<ResolvedWeekViewEntity>
-        get() = _allEvents.orEmpty()
-
-    override fun update(events: List<ResolvedWeekViewEntity>) {
-        _allEvents = events.toMutableList()
+    override fun update(events: List<WeekViewItem>) {
+        allEvents.clear()
+        allEvents.addAll(events)
     }
 
-    override fun update(event: ResolvedWeekViewEntity) {
-        val index = _allEvents?.indexOfFirst { it.id == event.id }?.takeIf { it != -1 }
+    override fun update(event: WeekViewItem) {
+        val index = allEvents.indexOfFirst { it.id == event.id }
 
-        if (index != null) {
-            _allEvents?.removeAt(index)
-            _allEvents?.add(index, event)
+        if (index != -1) {
+            allEvents.removeAt(index)
+            allEvents.add(index, event)
         }
     }
 
     override fun clear() {
-        _allEvents = null
+        allEvents.clear()
     }
 }
 
 /**
- * Represents an [EventsCache] that caches [ResolvedWeekViewEntity]s for their respective [Period]
- * and allows retrieval based on that [Period].
+ * Represents an [EventsCache] that caches [WeekViewItem]s for their respective [Period] and allows
+ * retrieval based on that [Period].
  */
 internal class PaginatedEventsCache : EventsCache() {
 
-    override val allEvents: List<ResolvedWeekViewEntity>
+    private val eventsByPeriod: ArrayMap<Period, MutableList<WeekViewItem>> = ArrayMap()
+
+    override val allEvents: List<WeekViewItem>
         get() = eventsByPeriod.values.flatten()
 
-    private val eventsByPeriod: ArrayMap<Period, MutableList<ResolvedWeekViewEntity>> = ArrayMap()
-
-    override fun update(events: List<ResolvedWeekViewEntity>) {
+    override fun update(events: List<WeekViewItem>) {
         val groupedEvents = events.groupBy { it.period }
         for ((period, periodEvents) in groupedEvents) {
             eventsByPeriod[period] = periodEvents.toMutableList()
         }
     }
 
-    override fun update(event: ResolvedWeekViewEntity) {
+    override fun update(event: WeekViewItem) {
         val existingEvent = allEvents.firstOrNull { it.id == event.id } ?: return
         eventsByPeriod[existingEvent.period]?.removeAll { it.id == event.id }
         eventsByPeriod[event.period]?.add(event)

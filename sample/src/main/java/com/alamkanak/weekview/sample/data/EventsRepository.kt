@@ -7,7 +7,7 @@ import android.os.Looper
 import com.alamkanak.weekview.sample.data.model.ApiBlockedTime
 import com.alamkanak.weekview.sample.data.model.ApiEvent
 import com.alamkanak.weekview.sample.data.model.ApiResult
-import com.alamkanak.weekview.sample.data.model.CalendarEntity
+import com.alamkanak.weekview.sample.data.model.CalendarItem
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import java.time.YearMonth
@@ -21,7 +21,7 @@ class EventsRepository(private val context: Context) {
 
     fun fetch(
         yearMonths: List<YearMonth>,
-        onSuccess: (List<CalendarEntity>) -> Unit
+        onSuccess: (List<CalendarItem>) -> Unit
     ) {
         val handlerThread = HandlerThread("events-fetching")
         handlerThread.start()
