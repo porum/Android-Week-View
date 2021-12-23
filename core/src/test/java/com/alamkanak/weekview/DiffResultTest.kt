@@ -1,22 +1,21 @@
 package com.alamkanak.weekview
 
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.alamkanak.weekview.EventsProcessor.DiffResult
-import com.alamkanak.weekview.util.MockFactory
+import com.alamkanak.weekview.util.Mocks
 import com.alamkanak.weekview.util.withDifferentId
 import com.google.common.truth.Truth.assertThat
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
+import java.util.Calendar
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [27])
+@RunWith(AndroidJUnit4::class)
 class DiffResultTest {
 
     @Test
     fun `DiffResult for empty existing and new entities contains no elements`() {
-        val existingEntities = emptyList<ResolvedWeekViewEntity>()
-        val newEntities = emptyList<ResolvedWeekViewEntity>()
+        val existingEntities = emptyList<WeekViewItem>()
+        val newEntities = emptyList<WeekViewItem>()
 
         val result = DiffResult.calculateDiff(
             existingEntities = existingEntities,
@@ -29,8 +28,8 @@ class DiffResultTest {
 
     @Test
     fun `New entities are correctly recognized as new`() {
-        val existingEntities = emptyList<ResolvedWeekViewEntity>()
-        val newEntities = MockFactory.resolvedWeekViewEntities(count = 2)
+        val existingEntities = emptyList<WeekViewItem>()
+        val newEntities = Mocks.weekViewItems(count = 2)
 
         val result = DiffResult.calculateDiff(
             existingEntities = existingEntities,
@@ -43,9 +42,10 @@ class DiffResultTest {
 
     @Test
     fun `Updated entities are correctly recognized as new`() {
-        val existingEntity = MockFactory.resolvedWeekViewEntity()
-        val newEntity = existingEntity.createCopy(
-            endTime = existingEntity.startTime + Hours(2)
+        val existingEntity = Mocks.weekViewItem()
+        val newEntity = existingEntity.copyWith(
+            startTime = existingEntity.timing.startTime,
+            endTime = existingEntity.timing.endTime + Hours(1)
         )
 
         val result = DiffResult.calculateDiff(
@@ -59,11 +59,15 @@ class DiffResultTest {
 
     @Test
     fun `New and updated entities are correctly recognized together`() {
-        val existingEntity = MockFactory.resolvedWeekViewEntity()
-        val updatedEntity = existingEntity.createCopy(
-            endTime = existingEntity.startTime + Hours(2)
+        val startTime = Calendar.getInstance()
+        val endTime = startTime + Hours(1)
+
+        val existingEntity = Mocks.weekViewItem(startTime, endTime)
+        val updatedEntity = existingEntity.copyWith(
+            startTime = existingEntity.timing.startTime,
+            endTime = existingEntity.timing.endTime + Hours(1),
         )
-        val newEntity = MockFactory.resolvedWeekViewEntity()
+        val newEntity = Mocks.weekViewItem(startTime, endTime)
 
         val result = DiffResult.calculateDiff(
             existingEntities = listOf(existingEntity),
@@ -76,7 +80,7 @@ class DiffResultTest {
 
     @Test
     fun `Removed entities are correctly recognized as to-remove`() {
-        val entityToRemove = MockFactory.resolvedWeekViewEntity()
+        val entityToRemove = Mocks.weekViewItem()
 
         val result = DiffResult.calculateDiff(
             existingEntities = listOf(entityToRemove),
@@ -89,7 +93,7 @@ class DiffResultTest {
 
     @Test
     fun `Otherwise equal entities with different IDs are treated as separate elements`() {
-        val existingEntity = MockFactory.resolvedWeekViewEntity()
+        val existingEntity = Mocks.weekViewItem()
         val newEntity = existingEntity.withDifferentId()
 
         val result = DiffResult.calculateDiff(

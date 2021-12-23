@@ -4,5 +4,5 @@ import java.util.Calendar
 
 data class Event(
     val startTime: Calendar,
-    val endTime: Calendar
+    val endTime: Calendar,
 )

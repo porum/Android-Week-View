@@ -1,13 +1,16 @@
 package com.alamkanak.weekview
 
-import com.alamkanak.weekview.util.createResolvedWeekViewEvent
+import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.alamkanak.weekview.util.Mocks
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.mockito.Mockito
 import org.mockito.MockitoAnnotations
 import org.mockito.Mockito.`when` as whenever
 
+@RunWith(AndroidJUnit4::class)
 class WeekViewEventTest {
 
     private val viewState = Mockito.mock(ViewState::class.java)
@@ -24,7 +27,7 @@ class WeekViewEventTest {
         val startTime = (today() + Days(1)).withHour(6).withMinutes(0)
         val endTime = startTime + Hours(10)
 
-        val originalEvent = createResolvedWeekViewEvent(startTime, endTime)
+        val originalEvent = Mocks.weekViewItem(startTime, endTime)
 
         val eventChips = factory.create(listOf(originalEvent), viewState)
         assertTrue(eventChips.size == 1)
@@ -39,7 +42,7 @@ class WeekViewEventTest {
         val startTime = (today() + Days(1)).withHour(14).withMinutes(0)
         val endTime = (today() + Days(2)).withHour(14).withMinutes(0)
 
-        val originalEvent = createResolvedWeekViewEvent(startTime, endTime)
+        val originalEvent = Mocks.weekViewItem(startTime, endTime)
         val eventChips = factory.create(listOf(originalEvent), viewState)
         assertTrue(eventChips.size == 2)
 
@@ -58,7 +61,7 @@ class WeekViewEventTest {
         val startTime = (today() + Days(1)).withHour(14).withMinutes(0)
         val endTime = (today() + Days(3)).withHour(1).withMinutes(0)
 
-        val originalEvent = createResolvedWeekViewEvent(startTime, endTime)
+        val originalEvent = Mocks.weekViewItem(startTime, endTime)
         val eventChips = factory.create(listOf(originalEvent), viewState)
         assertTrue(eventChips.size == 3)
 
@@ -77,11 +80,11 @@ class WeekViewEventTest {
     fun `non-colliding events are recognized correctly`() {
         val firstStartTime = now()
         val firstEndTime = firstStartTime + Hours(1)
-        val first = createResolvedWeekViewEvent(firstStartTime, firstEndTime)
+        val first = Mocks.weekViewItem(firstStartTime, firstEndTime)
 
         val secondStartTime = firstStartTime + Hours(2)
         val secondEndTime = secondStartTime + Hours(1)
-        val second = createResolvedWeekViewEvent(secondStartTime, secondEndTime)
+        val second = Mocks.weekViewItem(secondStartTime, secondEndTime)
 
         assertFalse(first.collidesWith(second))
     }
@@ -90,11 +93,11 @@ class WeekViewEventTest {
     fun `overlapping events are recognized as colliding`() {
         val firstStartTime = now()
         val firstEndTime = firstStartTime + Hours(1)
-        val first = createResolvedWeekViewEvent(firstStartTime, firstEndTime)
+        val first = Mocks.weekViewItem(firstStartTime, firstEndTime)
 
         val secondStartTime = firstStartTime - Hours(1)
         val secondEndTime = firstEndTime + Hours(1)
-        val second = createResolvedWeekViewEvent(secondStartTime, secondEndTime)
+        val second = Mocks.weekViewItem(secondStartTime, secondEndTime)
 
         assertTrue(first.collidesWith(second))
     }
@@ -103,11 +106,11 @@ class WeekViewEventTest {
     fun `partly-overlapping events are recognized as colliding`() {
         val firstStartTime = now().withMinutes(0)
         val firstEndTime = firstStartTime + Hours(1)
-        val first = createResolvedWeekViewEvent(firstStartTime, firstEndTime)
+        val first = Mocks.weekViewItem(firstStartTime, firstEndTime)
 
         val secondStartTime = firstStartTime.withMinutes(30)
         val secondEndTime = secondStartTime + Hours(1)
-        val second = createResolvedWeekViewEvent(secondStartTime, secondEndTime)
+        val second = Mocks.weekViewItem(secondStartTime, secondEndTime)
 
         assertTrue(first.collidesWith(second))
     }
