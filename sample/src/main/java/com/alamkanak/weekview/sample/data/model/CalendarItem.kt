@@ -82,7 +82,7 @@ fun CalendarItem.Event.toWeekViewItem(context: Context): WeekViewItem {
             borderWidth = borderWidth,
             borderColor = color,
         ),
-        configuration = WeekViewItem.Configuration.defaultForegroundConfig(),
+        configuration = WeekViewItem.Configuration.foreground(),
         data = this,
     )
 }
@@ -99,7 +99,7 @@ fun CalendarItem.BlockedTimeSlot.toWeekViewItem(context: Context): WeekViewItem 
             backgroundColor = ContextCompat.getColor(context, R.color.gray_alpha10),
             cornerRadius = context.resources.getDimensionPixelSize(R.dimen.no_corner_radius),
         ),
-        configuration = WeekViewItem.Configuration.defaultBackgroundConfig(),
+        configuration = WeekViewItem.Configuration.background(),
         data = this,
     )
 }

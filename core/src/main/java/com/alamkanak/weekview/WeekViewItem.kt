@@ -49,15 +49,21 @@ data class WeekViewItem(
     ) {
         companion object {
 
-            fun defaultForegroundConfig() = Configuration(
-                respectDayGap = true,
-                canBeDragged = true,
+            fun foreground(
+                respectDayGap: Boolean = true,
+                canBeDragged: Boolean = true,
+            ) = Configuration(
+                respectDayGap = respectDayGap,
+                canBeDragged = canBeDragged,
                 arrangement = Arrangement.Foreground,
             )
 
-            fun defaultBackgroundConfig() = Configuration(
-                respectDayGap = false,
-                canBeDragged = false,
+            fun background(
+                respectDayGap: Boolean = false,
+                canBeDragged: Boolean = false,
+            ) = Configuration(
+                respectDayGap = respectDayGap,
+                canBeDragged = canBeDragged,
                 arrangement = Arrangement.Background,
             )
         }
