@@ -9,6 +9,9 @@ import androidx.annotation.DimenRes
 import androidx.annotation.StringRes
 import androidx.core.content.ContextCompat
 
+@Deprecated(
+    message = "Remove this soon.",
+)
 internal sealed class ColorResource {
     data class Value(@ColorInt val color: Int) : ColorResource()
     data class Id(@ColorRes val resId: Int) : ColorResource()
@@ -19,6 +22,9 @@ internal sealed class ColorResource {
     }
 }
 
+@Deprecated(
+    message = "Remove this soon.",
+)
 internal sealed class TextResource {
     data class Value(val text: CharSequence) : TextResource()
     data class Id(@StringRes val resId: Int) : TextResource()
@@ -37,6 +43,9 @@ internal sealed class TextResource {
     }
 }
 
+@Deprecated(
+    message = "Remove this soon.",
+)
 internal sealed class DimenResource {
     data class Value(val value: Int) : DimenResource()
     data class Id(@DimenRes val resId: Int) : DimenResource()
