@@ -19,7 +19,7 @@ data class WeekViewItem(
     val timing: Timing,
     val style: Style = Style(),
     val configuration: Configuration = Configuration(),
-    val data: Any? = null,
+    val data: Any,
 ) {
 
     /**

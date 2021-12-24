@@ -154,13 +154,13 @@ internal fun ResolvedWeekViewEntity.toWeekViewItem(): WeekViewItem {
             cornerRadius = style.cornerRadius,
         ),
         configuration = WeekViewItem.Configuration(
-            respectDayGap = this is WeekViewEntity.Event<*>,
+            respectDayGap = this is ResolvedWeekViewEntity.Event<*>,
             arrangement = when (this) {
                 is ResolvedWeekViewEntity.Event<*> -> WeekViewItem.Arrangement.Foreground
                 is ResolvedWeekViewEntity.BlockedTime -> WeekViewItem.Arrangement.Background
             },
-            canBeDragged = this is WeekViewEntity.Event<*>,
+            canBeDragged = this is ResolvedWeekViewEntity.Event<*>,
         ),
-        data = (this as? ResolvedWeekViewEntity.Event<*>)?.data,
+        data = (this as? ResolvedWeekViewEntity.Event<*>)?.data ?: Unit,
     )
 }

@@ -61,8 +61,6 @@ internal val Calendar.year: Int
 
 internal fun Calendar.isEqual(other: Calendar) = timeInMillis == other.timeInMillis
 
-internal fun Calendar.isNotEqual(other: Calendar) = isEqual(other).not()
-
 internal operator fun Calendar.plus(days: Days): Calendar {
     return copy().apply {
         add(Calendar.DATE, days.days)
