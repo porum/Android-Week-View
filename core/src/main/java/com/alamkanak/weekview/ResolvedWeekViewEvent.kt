@@ -136,12 +136,12 @@ internal fun ResolvedWeekViewEntity.toWeekViewItem(): WeekViewItem {
         id = id,
         title = title,
         subtitle = subtitle,
-        timing = if (isAllDay) {
-            WeekViewItem.Timing.AllDay(
+        duration = if (isAllDay) {
+            WeekViewItem.Duration.AllDay(
                 date = startTime.atStartOfDay,
             )
         } else {
-            WeekViewItem.Timing.Bounded(
+            WeekViewItem.Duration.Bounded(
                 startTime = startTime,
                 endTime = endTime,
             )

@@ -62,10 +62,10 @@ internal data class EventChip(
     var minutesFromStartHour: Int = 0
 
     val startsOnEarlierDay: Boolean
-        get() = item.timing.startTime < startTime
+        get() = item.duration.startTime < startTime
 
     val endsOnLaterDay: Boolean
-        get() = item.timing.endTime > endTime
+        get() = item.duration.endTime > endTime
 
     fun setEmpty() {
         bounds.setEmpty()

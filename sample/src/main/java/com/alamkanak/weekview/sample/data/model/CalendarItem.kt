@@ -63,9 +63,9 @@ fun CalendarItem.Event.toWeekViewItem(context: Context): WeekViewItem {
     }
 
     val timing = if (isAllDay) {
-        WeekViewItem.Timing.AllDay(date = startTime.toLocalDate().toCalendar())
+        WeekViewItem.Duration.AllDay(date = startTime.toLocalDate().toCalendar())
     } else {
-        WeekViewItem.Timing.Bounded(
+        WeekViewItem.Duration.Bounded(
             startTime = startTime.toCalendar(),
             endTime = endTime.toCalendar(),
         )
@@ -75,7 +75,7 @@ fun CalendarItem.Event.toWeekViewItem(context: Context): WeekViewItem {
         id = id,
         title = title,
         subtitle = subtitle,
-        timing = timing,
+        duration = timing,
         style = WeekViewItem.Style(
             textColor = textColor,
             backgroundColor = backgroundColor,
@@ -91,7 +91,7 @@ fun CalendarItem.BlockedTimeSlot.toWeekViewItem(context: Context): WeekViewItem 
     return WeekViewItem(
         id = id,
         title = "Unavailable",
-        timing = WeekViewItem.Timing.Bounded(
+        duration = WeekViewItem.Duration.Bounded(
             startTime = startTime.toCalendar(),
             endTime = endTime.toCalendar(),
         ),

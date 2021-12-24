@@ -31,7 +31,7 @@ internal class DragHandler(
     fun startDragAndDrop(eventChip: EventChip, x: Float, y: Float) {
         viewState.dragState = DragState(
             eventId = eventChip.itemId,
-            draggedEventStartTime = eventChip.item.timing.startTime,
+            draggedEventStartTime = eventChip.item.duration.startTime,
             dragStartTime = requireNotNull(touchHandler.calculateTimeFromPoint(x, y)),
         )
 
@@ -116,7 +116,7 @@ internal class DragHandler(
             }
 
             val draggedEvent = draggedEvent ?: return@execute
-            updateDraggedEvent(newStartTime = draggedEvent.timing.startTime - Minutes(15))
+            updateDraggedEvent(newStartTime = draggedEvent.duration.startTime - Minutes(15))
 
             val distance = viewState.hourHeight / 4f
             navigator.scrollVerticallyBy(distance = distance * (-1))
@@ -132,7 +132,7 @@ internal class DragHandler(
             }
 
             val draggedEvent = draggedEvent ?: return@execute
-            updateDraggedEvent(newStartTime = draggedEvent.timing.startTime + Minutes(15))
+            updateDraggedEvent(newStartTime = draggedEvent.duration.startTime + Minutes(15))
 
             val distance = viewState.hourHeight / 4f
             navigator.scrollVerticallyBy(distance = distance)
@@ -146,9 +146,9 @@ internal class DragHandler(
 
         executor.execute(delay = 600) {
             val draggedEvent = draggedEvent ?: return@execute
-            updateDraggedEvent(newStartTime = draggedEvent.timing.startTime - Days(1))
+            updateDraggedEvent(newStartTime = draggedEvent.duration.startTime - Days(1))
 
-            val date = draggedEvent.timing.startTime.atStartOfDay
+            val date = draggedEvent.duration.startTime.atStartOfDay
             navigator.scrollHorizontallyTo(date - Days(1))
         }
     }
@@ -160,9 +160,9 @@ internal class DragHandler(
 
         executor.execute(delay = 600) {
             val draggedEvent = draggedEvent ?: return@execute
-            updateDraggedEvent(newStartTime = draggedEvent.timing.startTime + Days(1))
+            updateDraggedEvent(newStartTime = draggedEvent.duration.startTime + Days(1))
 
-            val date = draggedEvent.timing.startTime.atStartOfDay
+            val date = draggedEvent.duration.startTime.atStartOfDay
             navigator.scrollHorizontallyTo(date + Days(1))
         }
     }

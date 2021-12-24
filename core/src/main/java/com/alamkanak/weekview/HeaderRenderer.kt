@@ -235,7 +235,7 @@ private class AllDayEventsUpdater(
         viewState.currentAllDayEventHeight = maximumChipHeight
 
         val maximumChipsPerDay = eventsLabelLayouts.keys
-            .groupBy { it.item.timing.startTime.toEpochDays() }
+            .groupBy { it.item.duration.startTime.toEpochDays() }
             .values
             .maxByOrNull { it.size }?.size ?: 0
 
@@ -272,7 +272,7 @@ internal class AllDayEventsDrawer(
     override fun draw(canvas: Canvas) = canvas.drawInBounds(viewState.headerBounds) {
         for (date in viewState.dateRange) {
             val events = allDayEventLayouts
-                .filter { it.key.item.timing.startTime.isSameDate(date) }
+                .filter { it.key.item.duration.startTime.isSameDate(date) }
                 .toList()
 
             if (viewState.arrangeAllDayEventsVertically) {

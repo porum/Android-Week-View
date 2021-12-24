@@ -110,11 +110,11 @@ internal class EventsProcessor(
             item.copy(
                 title = item.title.processed,
                 subtitle = item.subtitle?.processed,
-                timing = when (val timing = item.timing) {
-                    is WeekViewItem.Timing.AllDay -> timing // Keep all-day events as-is
-                    is WeekViewItem.Timing.Bounded -> WeekViewItem.Timing.Bounded(
-                        startTime = timing.startTime.withLocalTimeZone(),
-                        endTime = timing.endTime.withLocalTimeZone(),
+                duration = when (val duration = item.duration) {
+                    is WeekViewItem.Duration.AllDay -> duration // Keep all-day events as-is
+                    is WeekViewItem.Duration.Bounded -> WeekViewItem.Duration.Bounded(
+                        startTime = duration.startTime.withLocalTimeZone(),
+                        endTime = duration.endTime.withLocalTimeZone(),
                     )
                 }
             )

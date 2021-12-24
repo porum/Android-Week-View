@@ -20,7 +20,7 @@ internal object Mocks {
         return WeekViewItem(
             id = id,
             title = "Title $id",
-            timing = WeekViewItem.Timing.Bounded(
+            duration = WeekViewItem.Duration.Bounded(
                 startTime = startTime,
                 endTime = endTime,
             ),

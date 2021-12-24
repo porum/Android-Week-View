@@ -1524,8 +1524,8 @@ class WeekView @JvmOverloads constructor(
 
             onDragAndDropFinished(
                 data = data,
-                newStartTime = match.timing.startTime,
-                newEndTime = match.timing.endTime,
+                newStartTime = match.duration.startTime,
+                newEndTime = match.duration.endTime,
             )
         }
 

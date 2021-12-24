@@ -16,7 +16,7 @@ data class WeekViewItem(
     val id: Long = 0L,
     val title: CharSequence,
     val subtitle: CharSequence? = null,
-    val timing: Timing,
+    val duration: Duration,
     val style: Style = Style(),
     val configuration: Configuration = Configuration(),
     val data: Any,
@@ -73,11 +73,10 @@ data class WeekViewItem(
     }
 
     /**
-     * The timing information of a [WeekViewItem], which can either be an [AllDay] event or a
+     * The duration information of a [WeekViewItem], which can either be an [AllDay] event or a
      * [Bounded] event.
      */
-    // TODO Update naming here
-    sealed class Timing {
+    sealed class Duration {
 
         abstract val startTime: Calendar
         abstract val endTime: Calendar
@@ -85,18 +84,18 @@ data class WeekViewItem(
         data class Bounded(
             override val startTime: Calendar,
             override val endTime: Calendar,
-        ) : Timing()
+        ) : Duration()
 
         data class AllDay(
             val date: Calendar,
-        ) : Timing() {
+        ) : Duration() {
             override val startTime: Calendar = date.atStartOfDay
             override val endTime: Calendar = date.atEndOfDay
         }
     }
 
     val isAllDay: Boolean by lazy {
-        timing is Timing.AllDay
+        duration is Duration.AllDay
     }
 
     val isNotAllDay: Boolean by lazy {
@@ -104,49 +103,44 @@ data class WeekViewItem(
     }
 
     internal val isMultiDay: Boolean by lazy {
-        !timing.startTime.isSameDate(timing.endTime)
+        !duration.startTime.isSameDate(duration.endTime)
     }
 
     internal val period: Period by lazy {
-        when (timing) {
-            is Timing.Bounded -> Period.fromDate(timing.startTime)
-            is Timing.AllDay -> Period.fromDate(timing.date)
+        when (duration) {
+            is Duration.Bounded -> Period.fromDate(duration.startTime)
+            is Duration.AllDay -> Period.fromDate(duration.date)
         }
     }
 
-    internal val dates: List<Calendar> by lazy {
-        val daysInBetween = timing.endTime.toEpochDays() - timing.startTime.toEpochDays()
-        (0..daysInBetween).map { timing.startTime.atStartOfDay + Days(it) }
-    }
-
     internal val durationInMinutes: Int by lazy {
-        (timing.endTime minutesUntil timing.startTime).minutes
+        (duration.endTime minutesUntil duration.startTime).minutes
     }
 
     internal fun isWithin(
         minHour: Int,
         maxHour: Int
-    ): Boolean = timing.startTime.hour >= minHour && timing.endTime.hour <= maxHour
+    ): Boolean = duration.startTime.hour >= minHour && duration.endTime.hour <= maxHour
 
     internal fun copyWith(startTime: Calendar, endTime: Calendar): WeekViewItem {
-        return when (timing) {
-            is Timing.Bounded -> copy(timing = timing.copy(startTime = startTime, endTime = endTime))
-            is Timing.AllDay -> this
+        return when (duration) {
+            is Duration.Bounded -> copy(duration = duration.copy(startTime = startTime, endTime = endTime))
+            is Duration.AllDay -> this
         }
     }
 
     internal fun limitTo(minHour: Int, maxHour: Int): WeekViewItem {
         return copyWith(
-            startTime = timing.startTime.limitToMinHour(minHour),
-            endTime = timing.endTime.limitToMaxHour(maxHour),
+            startTime = duration.startTime.limitToMinHour(minHour),
+            endTime = duration.endTime.limitToMaxHour(maxHour),
         )
     }
 
-    internal fun collidesWith(other: WeekViewItem): Boolean = timing.overlapsWith(other.timing)
+    internal fun collidesWith(other: WeekViewItem): Boolean = duration.overlapsWith(other.duration)
 }
 
-private fun WeekViewItem.Timing.overlapsWith(other: WeekViewItem.Timing): Boolean {
-    if (this is WeekViewItem.Timing.AllDay || other is WeekViewItem.Timing.AllDay) {
+private fun WeekViewItem.Duration.overlapsWith(other: WeekViewItem.Duration): Boolean {
+    if (this is WeekViewItem.Duration.AllDay || other is WeekViewItem.Duration.AllDay) {
         return false
     }
 

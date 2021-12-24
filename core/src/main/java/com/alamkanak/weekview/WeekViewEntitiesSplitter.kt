@@ -1,7 +1,7 @@
 package com.alamkanak.weekview
 
 internal fun WeekViewItem.split(viewState: ViewState): List<WeekViewItem> {
-    if (timing.startTime >= timing.endTime) {
+    if (duration.startTime >= duration.endTime) {
         return emptyList()
     }
 
@@ -11,7 +11,7 @@ internal fun WeekViewItem.split(viewState: ViewState): List<WeekViewItem> {
         listOf(limitTo(minHour = viewState.minHour, maxHour = viewState.maxHour))
     }
 
-    return entities.filter { it.timing.startTime < it.timing.endTime }
+    return entities.filter { it.duration.startTime < it.duration.endTime }
 }
 
 private fun WeekViewItem.splitByDates(
@@ -19,18 +19,18 @@ private fun WeekViewItem.splitByDates(
     maxHour: Int,
 ): List<WeekViewItem> {
     val firstEvent = copyWith(
-        startTime = timing.startTime.limitToMinHour(minHour),
-        endTime = timing.startTime.atEndOfDay.limitToMaxHour(maxHour)
+        startTime = duration.startTime.limitToMinHour(minHour),
+        endTime = duration.startTime.atEndOfDay.limitToMaxHour(maxHour)
     )
 
     val results = mutableListOf<WeekViewItem>()
     results += firstEvent
 
-    val daysInBetween = timing.endTime.toEpochDays() - timing.startTime.toEpochDays() - 1
+    val daysInBetween = duration.endTime.toEpochDays() - duration.startTime.toEpochDays() - 1
 
     if (daysInBetween > 0) {
-        val currentDate = timing.startTime.atStartOfDay + Days(1)
-        while (currentDate.toEpochDays() < timing.endTime.toEpochDays()) {
+        val currentDate = duration.startTime.atStartOfDay + Days(1)
+        while (currentDate.toEpochDays() < duration.endTime.toEpochDays()) {
             val intermediateStart = currentDate.withTimeAtStartOfPeriod(minHour)
             val intermediateEnd = currentDate.withTimeAtEndOfPeriod(maxHour)
             results += copyWith(startTime = intermediateStart, endTime = intermediateEnd)
@@ -39,10 +39,10 @@ private fun WeekViewItem.splitByDates(
     }
 
     val lastEvent = copyWith(
-        startTime = timing.endTime.atStartOfDay.limitToMinHour(minHour),
-        endTime = timing.endTime.limitToMaxHour(maxHour)
+        startTime = duration.endTime.atStartOfDay.limitToMinHour(minHour),
+        endTime = duration.endTime.limitToMaxHour(maxHour)
     )
     results += lastEvent
 
-    return results.sortedWith(compareBy({ it.timing.startTime }, { it.timing.endTime }))
+    return results.sortedWith(compareBy({ it.duration.startTime }, { it.duration.endTime }))
 }

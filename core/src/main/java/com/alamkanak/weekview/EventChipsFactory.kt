@@ -50,8 +50,8 @@ internal class EventChipsFactory {
                 EventChip(
                     item = item,
                     index = index,
-                    startTime = eventPart.timing.startTime,
-                    endTime = eventPart.timing.endTime,
+                    startTime = eventPart.duration.startTime,
+                    endTime = eventPart.duration.endTime,
                 )
             }
         }
@@ -266,17 +266,17 @@ internal class EventChipsFactory {
 }
 
 private fun WeekViewItem.sanitize(viewState: ViewState): WeekViewItem {
-    return if (timing is WeekViewItem.Timing.Bounded) {
-        val shouldAdjustEndTime = timing.endTime.isAtStartOfPeriod(viewState.minHour)
+    return if (duration is WeekViewItem.Duration.Bounded) {
+        val shouldAdjustEndTime = duration.endTime.isAtStartOfPeriod(viewState.minHour)
         val newEndTime = if (shouldAdjustEndTime) {
-            timing.endTime - Millis(1)
+            duration.endTime - Millis(1)
         } else {
-            timing.endTime
+            duration.endTime
         }
 
         copy(
-            timing = WeekViewItem.Timing.Bounded(
-                startTime = timing.startTime,
+            duration = WeekViewItem.Duration.Bounded(
+                startTime = duration.startTime,
                 endTime = newEndTime,
             )
         )

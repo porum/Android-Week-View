@@ -75,7 +75,7 @@ class WeekViewEventSplitterTest {
         )
 
         val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.timing.startTime.timeInMillis to it.timing.endTime.timeInMillis }
+        val resultTimes = results.map { it.duration.startTime.timeInMillis to it.duration.endTime.timeInMillis }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -96,7 +96,7 @@ class WeekViewEventSplitterTest {
         )
 
         val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.timing.startTime.timeInMillis to it.timing.endTime.timeInMillis }
+        val resultTimes = results.map { it.duration.startTime.timeInMillis to it.duration.endTime.timeInMillis }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -118,7 +118,7 @@ class WeekViewEventSplitterTest {
         )
 
         val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.timing.startTime.timeInMillis to it.timing.endTime.timeInMillis }
+        val resultTimes = results.map { it.duration.startTime.timeInMillis to it.duration.endTime.timeInMillis }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -145,7 +145,7 @@ class WeekViewEventSplitterTest {
         )
 
         val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.timing.startTime.timeInMillis to it.timing.endTime.timeInMillis }
+        val resultTimes = results.map { it.duration.startTime.timeInMillis to it.duration.endTime.timeInMillis }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -169,7 +169,7 @@ class WeekViewEventSplitterTest {
         )
 
         val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.timing.startTime.timeInMillis to it.timing.endTime.timeInMillis }
+        val resultTimes = results.map { it.duration.startTime.timeInMillis to it.duration.endTime.timeInMillis }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -193,7 +193,7 @@ class WeekViewEventSplitterTest {
         )
 
         val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.timing.startTime.timeInMillis to it.timing.endTime.timeInMillis }
+        val resultTimes = results.map { it.duration.startTime.timeInMillis to it.duration.endTime.timeInMillis }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -217,7 +217,7 @@ class WeekViewEventSplitterTest {
         )
 
         val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.timing.startTime.timeInMillis to it.timing.endTime.timeInMillis }
+        val resultTimes = results.map { it.duration.startTime.timeInMillis to it.duration.endTime.timeInMillis }
 
         assertEquals(expectedTimes, resultTimes)
     }

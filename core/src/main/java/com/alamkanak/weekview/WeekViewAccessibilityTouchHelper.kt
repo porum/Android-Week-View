@@ -161,7 +161,7 @@ internal class WeekViewAccessibilityTouchHelper(
     }
 
     private fun createDescriptionForVirtualView(item: WeekViewItem): String {
-        val date = dateTimeFormatter.format(item.timing.startTime.time)
+        val date = dateTimeFormatter.format(item.duration.startTime.time)
         return "$date: ${item.title}, ${item.subtitle}"
     }
 
