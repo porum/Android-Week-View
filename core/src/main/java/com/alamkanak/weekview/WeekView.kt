@@ -13,6 +13,7 @@ import android.view.View
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.RequiresApi
 import androidx.core.view.ViewCompat
+import java.lang.ClassCastException
 import java.lang.Exception
 import java.util.Calendar
 import kotlin.math.abs
@@ -1406,14 +1407,32 @@ class WeekView @JvmOverloads constructor(
         internal fun handleClick(x: Float, y: Float): Boolean {
             val eventChip = findHitEvent(x, y) ?: return false
             val data = findEventData(id = eventChip.itemId) ?: return false
-            onEventClick(data, eventChip.bounds)
+
+            try {
+                // Needed while WeekViewEntity is still around, because WeekViewEntity.BlockedTimeSlot
+                // doesn't have any data associated with it. Since WeekViewItem requires data, we
+                // are currently using Unit. However, Unit can't be cast to T.
+                onEventClick(data, eventChip.bounds)
+            } catch (e: ClassCastException) {
+                // Ignored
+            }
+
             return true
         }
 
         internal fun handleLongClick(x: Float, y: Float): LongClickResult? {
             val eventChip = findHitEvent(x, y) ?: return null
             val data = findEventData(id = eventChip.itemId) ?: return null
-            val handled = onEventLongClick(data, eventChip.bounds)
+
+            val handled = try {
+                // Needed while WeekViewEntity is still around, because WeekViewEntity.BlockedTimeSlot
+                // doesn't have any data associated with it. Since WeekViewItem requires data, we
+                // are currently using Unit. However, Unit can't be cast to T.
+                onEventLongClick(data, eventChip.bounds)
+            } catch (e: ClassCastException) {
+                true
+            }
+
             return LongClickResult(eventChip = eventChip, handled = handled)
         }
 
