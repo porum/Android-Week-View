@@ -1,5 +1,6 @@
 package com.alamkanak.weekview.sample.ui
 
+import android.graphics.RectF
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.alamkanak.weekview.WeekViewEntity
@@ -22,16 +23,14 @@ class CustomFontActivity : AppCompatActivity() {
         ActivityCustomFontBinding.inflate(layoutInflater)
     }
 
-    private val adapter: CustomFontActivityWeekViewAdapter by lazy {
-        CustomFontActivityWeekViewAdapter(loadMoreHandler = this::onLoadMore)
-    }
-
     private val viewModel by genericViewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         binding.toolbarContainer.toolbar.setupWithWeekView(binding.weekView)
+
+        val adapter = CustomFontActivityWeekViewAdapter(loadMoreHandler = this::onLoadMore)
         binding.weekView.adapter = adapter
 
         viewModel.viewState.observe(this) { viewState ->
@@ -50,7 +49,7 @@ private class CustomFontActivityWeekViewAdapter(
 
     override fun onCreateEntity(item: CalendarItem): WeekViewEntity = item.toWeekViewEntity()
 
-    override fun onEventClick(data: CalendarItem) {
+    override fun onEventClick(data: CalendarItem, bounds: RectF) {
         if (data is CalendarItem.Event) {
             context.showToast("Clicked ${data.title}")
         }
@@ -60,10 +59,13 @@ private class CustomFontActivityWeekViewAdapter(
         context.showToast("Empty view clicked at ${defaultDateTimeFormatter.format(time)}")
     }
 
-    override fun onEventLongClick(data: CalendarItem) {
+    override fun onEventLongClick(data: CalendarItem, bounds: RectF): Boolean {
         if (data is CalendarItem.Event) {
             context.showToast("Long-clicked ${data.title}")
         }
+
+        // Disabling drag-&-drop by considering the long-click handled.
+        return true
     }
 
     override fun onEmptyViewLongClick(time: LocalDateTime) {

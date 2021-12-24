@@ -11,6 +11,8 @@ import java.util.Date
 
 val defaultDateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(MEDIUM, SHORT)
 
+val defaultTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofLocalizedTime(SHORT)
+
 fun LocalDate.toCalendar(): Calendar {
     val instant = atStartOfDay().atZone(ZoneId.systemDefault()).toInstant()
     val calendar = Calendar.getInstance()

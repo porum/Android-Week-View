@@ -1,5 +1,6 @@
 package com.alamkanak.weekview.sample.ui
 
+import android.graphics.RectF
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.alamkanak.weekview.WeekViewItem
@@ -56,7 +57,7 @@ private class LimitedActivityWeekViewAdapter(
 
     override fun onCreateItem(item: CalendarItem): WeekViewItem = item.toWeekViewItem(context)
 
-    override fun onEventClick(data: CalendarItem) {
+    override fun onEventClick(data: CalendarItem, bounds: RectF) {
         if (data is CalendarItem.Event) {
             context.showToast("Clicked ${data.title}")
         }
@@ -64,12 +65,6 @@ private class LimitedActivityWeekViewAdapter(
 
     override fun onEmptyViewClick(time: LocalDateTime) {
         context.showToast("Empty view clicked at ${defaultDateTimeFormatter.format(time)}")
-    }
-
-    override fun onEventLongClick(data: CalendarItem) {
-        if (data is CalendarItem.Event) {
-            context.showToast("Long-clicked ${data.title}")
-        }
     }
 
     override fun onEmptyViewLongClick(time: LocalDateTime) {

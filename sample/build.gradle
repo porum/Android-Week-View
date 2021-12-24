@@ -16,9 +16,6 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
         coreLibraryDesugaringEnabled true
     }
-    lintOptions {
-        abortOnError false
-    }
     buildFeatures {
         viewBinding true
     }

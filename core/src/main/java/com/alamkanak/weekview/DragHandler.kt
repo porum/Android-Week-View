@@ -140,6 +140,10 @@ internal class DragHandler(
     }
 
     private fun scrollLeft() {
+        if (!viewState.horizontalScrollingEnabled) {
+            return
+        }
+
         executor.execute(delay = 600) {
             val draggedEvent = draggedEvent ?: return@execute
             updateDraggedEvent(newStartTime = draggedEvent.timing.startTime - Days(1))
@@ -150,6 +154,10 @@ internal class DragHandler(
     }
 
     private fun scrollRight() {
+        if (!viewState.horizontalScrollingEnabled) {
+            return
+        }
+
         executor.execute(delay = 600) {
             val draggedEvent = draggedEvent ?: return@execute
             updateDraggedEvent(newStartTime = draggedEvent.timing.startTime + Days(1))

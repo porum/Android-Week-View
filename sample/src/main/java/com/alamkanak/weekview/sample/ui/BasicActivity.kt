@@ -12,6 +12,7 @@ import com.alamkanak.weekview.sample.data.model.toWeekViewItem
 import com.alamkanak.weekview.sample.databinding.ActivityBasicBinding
 import com.alamkanak.weekview.sample.util.GenericAction.ShowSnackbar
 import com.alamkanak.weekview.sample.util.defaultDateTimeFormatter
+import com.alamkanak.weekview.sample.util.defaultTimeFormatter
 import com.alamkanak.weekview.sample.util.genericViewModel
 import com.alamkanak.weekview.sample.util.setupWithWeekView
 import com.alamkanak.weekview.sample.util.showToast
@@ -78,19 +79,21 @@ private class BasicActivityWeekViewAdapter(
     override fun onCreateItem(item: CalendarItem): WeekViewItem = item.toWeekViewItem(context)
 
     override fun onEventClick(data: CalendarItem, bounds: RectF) {
-        if (data is CalendarItem.Event) {
-            context.showToast("Clicked ${data.title}")
+        val message = when (data) {
+            is CalendarItem.Event -> {
+                "Clicked event ${data.title}"
+            }
+            is CalendarItem.BlockedTimeSlot -> {
+                val formattedStart = defaultTimeFormatter.format(data.startTime)
+                val formattedEnd = defaultTimeFormatter.format(data.endTime)
+                "Clicked blocked time ($formattedStart–$formattedEnd)"
+            }
         }
+        context.showToast(message)
     }
 
     override fun onEmptyViewClick(time: LocalDateTime) {
         context.showToast("Empty view clicked at ${defaultDateTimeFormatter.format(time)}")
-    }
-
-    override fun onDragAndDropFinished(data: CalendarItem, newStartTime: LocalDateTime, newEndTime: LocalDateTime) {
-        if (data is CalendarItem.Event) {
-            dragHandler(data.id, newStartTime, newEndTime)
-        }
     }
 
     override fun onEmptyViewLongClick(time: LocalDateTime) {
@@ -99,6 +102,12 @@ private class BasicActivityWeekViewAdapter(
 
     override fun onLoadMore(startDate: LocalDate, endDate: LocalDate) {
         loadMoreHandler(yearMonthsBetween(startDate, endDate))
+    }
+
+    override fun onDragAndDropFinished(data: CalendarItem, newStartTime: LocalDateTime, newEndTime: LocalDateTime) {
+        if (data is CalendarItem.Event) {
+            dragHandler(data.id, newStartTime, newEndTime)
+        }
     }
 
     override fun onVerticalScrollPositionChanged(currentOffset: Float, distance: Float) {
