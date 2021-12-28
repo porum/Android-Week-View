@@ -43,8 +43,8 @@ data class WeekViewItem(
      * @param canBeDragged Whether the item can be dragged around by the user.
      */
     data class Configuration(
-        val respectDayGap: Boolean = true,
         val arrangement: Arrangement = Arrangement.Foreground,
+        val respectDayGap: Boolean = true,
         val canBeDragged: Boolean = true,
     ) {
         companion object {
@@ -100,13 +100,9 @@ data class WeekViewItem(
         }
     }
 
-    val isAllDay: Boolean by lazy {
-        duration is Duration.AllDay
-    }
+    internal val isAllDay: Boolean = duration is Duration.AllDay
 
-    val isNotAllDay: Boolean by lazy {
-        !isAllDay
-    }
+    internal val isNotAllDay: Boolean = !isAllDay
 
     internal val isMultiDay: Boolean by lazy {
         !duration.startTime.isSameDate(duration.endTime)

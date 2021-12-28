@@ -266,7 +266,7 @@ internal class EventChipsFactory {
 }
 
 private fun WeekViewItem.sanitize(viewState: ViewState): WeekViewItem {
-    return if (duration is WeekViewItem.Duration.Bounded) {
+    return if (isNotAllDay) {
         val shouldAdjustEndTime = duration.endTime.isAtStartOfPeriod(viewState.minHour)
         val newEndTime = if (shouldAdjustEndTime) {
             duration.endTime - Millis(1)
