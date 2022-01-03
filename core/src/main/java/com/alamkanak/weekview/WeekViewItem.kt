@@ -116,7 +116,7 @@ data class WeekViewItem(
     }
 
     internal val durationInMinutes: Int by lazy {
-        (duration.endTime minutesUntil duration.startTime).minutes
+        duration.endTime minutesUntil duration.startTime
     }
 
     internal fun isWithin(
@@ -153,10 +153,10 @@ private fun WeekViewItem.Duration.overlapsWith(other: WeekViewItem.Duration): Bo
 
     // Resolve collisions by shortening the preceding event by 1 ms
     if (endTime.isEqual(other.startTime)) {
-        endTime -= Millis(1)
+        endTime.subtractMillis(1)
         return false
     } else if (startTime.isEqual(other.endTime)) {
-        other.endTime -= Millis(1)
+        other.endTime.subtractMillis(1)
     }
 
     return !startTime.isAfter(other.endTime) && !endTime.isBefore(other.startTime)

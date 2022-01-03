@@ -29,12 +29,12 @@ private fun WeekViewItem.splitByDates(
     val daysInBetween = duration.endTime.toEpochDays() - duration.startTime.toEpochDays() - 1
 
     if (daysInBetween > 0) {
-        val currentDate = duration.startTime.atStartOfDay + Days(1)
+        val currentDate = duration.startTime.atStartOfDay.plusDays(1)
         while (currentDate.toEpochDays() < duration.endTime.toEpochDays()) {
             val intermediateStart = currentDate.withTimeAtStartOfPeriod(minHour)
             val intermediateEnd = currentDate.withTimeAtEndOfPeriod(maxHour)
             results += copyWith(startTime = intermediateStart, endTime = intermediateEnd)
-            currentDate += Days(1)
+            currentDate.addDays(1)
         }
     }
 

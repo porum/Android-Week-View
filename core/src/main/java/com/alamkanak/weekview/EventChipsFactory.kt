@@ -269,7 +269,7 @@ private fun WeekViewItem.sanitize(viewState: ViewState): WeekViewItem {
     return if (isNotAllDay) {
         val shouldAdjustEndTime = duration.endTime.isAtStartOfPeriod(viewState.minHour)
         val newEndTime = if (shouldAdjustEndTime) {
-            duration.endTime - Millis(1)
+            duration.endTime.minusMillis(1)
         } else {
             duration.endTime
         }
