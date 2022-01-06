@@ -5,7 +5,6 @@ import android.app.Activity
 import android.view.MenuItem
 import androidx.appcompat.widget.Toolbar
 import com.alamkanak.weekview.WeekView
-import com.alamkanak.weekview.jsr310.scrollToDateTime
 import com.alamkanak.weekview.sample.R
 import java.time.LocalDateTime
 

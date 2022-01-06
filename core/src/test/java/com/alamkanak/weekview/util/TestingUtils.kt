@@ -1,12 +1,12 @@
 package com.alamkanak.weekview.util
 
 import com.alamkanak.weekview.ResolvedWeekViewEntity
-import java.util.Calendar
+import java.time.LocalDateTime
 import kotlin.random.Random
 
 internal fun createResolvedWeekViewEvent(
-    startTime: Calendar,
-    endTime: Calendar
+    startTime: LocalDateTime,
+    endTime: LocalDateTime
 ): ResolvedWeekViewEntity = ResolvedWeekViewEntity.Event(
     id = 0,
     title = "Title",

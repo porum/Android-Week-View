@@ -1,9 +1,7 @@
 package com.alamkanak.weekview.util
 
-import com.alamkanak.weekview.Hours
 import com.alamkanak.weekview.ResolvedWeekViewEntity
-import com.alamkanak.weekview.plus
-import java.util.Calendar
+import java.time.LocalDateTime
 import kotlin.random.Random
 
 internal object MockFactory {
@@ -13,8 +11,8 @@ internal object MockFactory {
     }
 
     fun resolvedWeekViewEntity(
-        startTime: Calendar = Calendar.getInstance(),
-        endTime: Calendar = Calendar.getInstance() + Hours(1),
+        startTime: LocalDateTime = LocalDateTime.now(),
+        endTime: LocalDateTime = startTime.plusHours(1),
         isAllDay: Boolean = false,
     ): ResolvedWeekViewEntity.Event<Event> {
         val id = Random.nextLong()

@@ -4,9 +4,8 @@ import android.graphics.RectF
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.alamkanak.weekview.WeekView
 import com.alamkanak.weekview.WeekViewEntity
-import com.alamkanak.weekview.jsr310.WeekViewPagingAdapterJsr310
-import com.alamkanak.weekview.jsr310.setDateFormatter
 import com.alamkanak.weekview.sample.data.model.CalendarEntity
 import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
 import com.alamkanak.weekview.sample.databinding.ActivityBasicBinding
@@ -73,7 +72,7 @@ class BasicActivity : AppCompatActivity() {
 private class BasicActivityWeekViewAdapter(
     private val dragHandler: (Long, LocalDateTime, LocalDateTime) -> Unit,
     private val loadMoreHandler: (List<YearMonth>) -> Unit
-) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
+) : WeekView.PagingAdapter<CalendarEntity>() {
 
     override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
 

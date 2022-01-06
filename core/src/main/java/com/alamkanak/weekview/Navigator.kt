@@ -3,7 +3,7 @@ package com.alamkanak.weekview
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
-import java.util.Calendar
+import java.time.LocalDate
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -28,7 +28,7 @@ internal class Navigator(
         listener.onHorizontalScrollPositionChanged()
     }
 
-    fun scrollHorizontallyTo(date: Calendar, onFinished: () -> Unit = {}) {
+    fun scrollHorizontallyTo(date: LocalDate, onFinished: () -> Unit = {}) {
         val destinationOffset = viewState.getXOriginForDate(date)
         val adjustedDestinationOffset = destinationOffset.coerceIn(
             minimumValue = if (viewState.isLtr) viewState.minX else viewState.maxX,

@@ -6,8 +6,6 @@ import android.text.Spanned
 import android.text.style.StrikethroughSpan
 import android.text.style.TypefaceSpan
 import com.alamkanak.weekview.WeekViewEntity
-import com.alamkanak.weekview.jsr310.setEndTime
-import com.alamkanak.weekview.jsr310.setStartTime
 import com.alamkanak.weekview.sample.R
 import java.time.LocalDateTime
 

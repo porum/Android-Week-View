@@ -1,27 +1,29 @@
 package com.alamkanak.weekview.jodatime
 
-import org.joda.time.DateTime
-import org.joda.time.DateTimeZone
 import org.joda.time.LocalDate
 import org.joda.time.LocalDateTime
-import java.util.Calendar
+import org.joda.time.LocalTime
 
-internal fun Calendar.toLocalDate(): LocalDate {
-    val dateTimeZone = DateTimeZone.forID(timeZone.id)
-    val dateTime = DateTime(timeInMillis, dateTimeZone)
-    return dateTime.toLocalDate()
+internal typealias JsrLocalDate = java.time.LocalDate
+internal typealias JsrLocalTime = java.time.LocalTime
+internal typealias JsrLocalDateTime = java.time.LocalDateTime
+
+internal fun LocalDate.toJsrLocalDate(): JsrLocalDate {
+    return JsrLocalDate.of(year, monthOfYear, dayOfMonth)
 }
 
-internal fun Calendar.toLocalDateTime() = LocalDateTime(timeInMillis)
-
-internal fun LocalDate.toCalendar(): Calendar {
-    val calendar = Calendar.getInstance()
-    calendar.time = toDate()
-    return calendar
+internal fun LocalTime.toJsrLocalTime(): JsrLocalTime {
+    return JsrLocalTime.of(hourOfDay, minuteOfHour, secondOfMinute, millisOfSecond * 1_000_000)
 }
 
-internal fun LocalDateTime.toCalendar(): Calendar {
-    val calendar = Calendar.getInstance()
-    calendar.time = toDate()
-    return calendar
+internal fun LocalDateTime.toJsrLocalDateTime(): JsrLocalDateTime {
+    return JsrLocalDateTime.of(year, monthOfYear, dayOfMonth, hourOfDay, minuteOfHour, secondOfMinute, millisOfSecond * 1_000_000)
+}
+
+internal fun JsrLocalDate.toJodaLocalDate(): LocalDate {
+    return LocalDate(year, monthValue, dayOfMonth)
+}
+
+internal fun JsrLocalDateTime.toJodaLocalDateTime(): LocalDateTime {
+    return LocalDateTime(year, monthValue, dayOfMonth, hour, minute, second, nano / 1_000_000)
 }

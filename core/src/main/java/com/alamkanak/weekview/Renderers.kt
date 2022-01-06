@@ -1,7 +1,7 @@
 package com.alamkanak.weekview
 
 import android.graphics.Canvas
-import java.util.Calendar
+import java.time.LocalDate
 
 internal interface Updater {
     fun update()
@@ -11,7 +11,7 @@ internal interface Drawer {
     fun draw(canvas: Canvas)
 }
 
-typealias DateFormatter = (Calendar) -> String
+typealias DateFormatter = (LocalDate) -> String
 
 internal interface DateFormatterDependent {
     fun onDateFormatterChanged(formatter: DateFormatter)

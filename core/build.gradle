@@ -10,10 +10,12 @@ android {
     defaultConfig {
         minSdkVersion buildConfig.minSdk
         targetSdkVersion buildConfig.targetSdk
+        multiDexEnabled true
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
     }
     testOptions {
         unitTests.includeAndroidResources = true
@@ -21,6 +23,8 @@ android {
 }
 
 dependencies {
+    coreLibraryDesugaring libraries.coreLibraryDesugaring
+
     implementation project(':base')
     implementation libraries.kotlin
 

@@ -2,10 +2,8 @@ package com.alamkanak.weekview.sample.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.alamkanak.weekview.WeekView
 import com.alamkanak.weekview.WeekViewEntity
-import com.alamkanak.weekview.jsr310.WeekViewPagingAdapterJsr310
-import com.alamkanak.weekview.jsr310.firstVisibleDateAsLocalDate
-import com.alamkanak.weekview.jsr310.scrollToDate
 import com.alamkanak.weekview.sample.R
 import com.alamkanak.weekview.sample.data.model.CalendarEntity
 import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
@@ -45,13 +43,13 @@ class StaticActivity : AppCompatActivity() {
         binding.weekView.adapter = adapter
 
         binding.leftNavigationButton.setOnClickListener {
-            val firstDate = binding.weekView.firstVisibleDateAsLocalDate
+            val firstDate = binding.weekView.firstVisibleDate
             val newFirstDate = firstDate.minusDays(7)
             binding.weekView.scrollToDate(newFirstDate)
         }
 
         binding.rightNavigationButton.setOnClickListener {
-            val firstDate = binding.weekView.firstVisibleDateAsLocalDate
+            val firstDate = binding.weekView.firstVisibleDate
             val newFirstDate = firstDate.plusDays(7)
             binding.weekView.scrollToDate(newFirstDate)
         }
@@ -79,7 +77,7 @@ class StaticActivity : AppCompatActivity() {
 private class StaticActivityWeekViewAdapter(
     private val rangeChangeHandler: (LocalDate, LocalDate) -> Unit,
     private val loadMoreHandler: (List<YearMonth>) -> Unit
-) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
+) : WeekView.PagingAdapter<CalendarEntity>() {
 
     override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
 

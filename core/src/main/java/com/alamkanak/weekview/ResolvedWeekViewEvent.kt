@@ -1,28 +1,29 @@
 package com.alamkanak.weekview
 
 import android.content.Context
-import java.util.Calendar
-import kotlin.math.roundToInt
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.YearMonth
 
 internal sealed class ResolvedWeekViewEntity {
 
     internal abstract val id: Long
     internal abstract val title: CharSequence
     internal abstract val subtitle: CharSequence?
-    internal abstract val startTime: Calendar
-    internal abstract val endTime: Calendar
+    internal abstract var startTime: LocalDateTime
+    internal abstract var endTime: LocalDateTime
     internal abstract val isAllDay: Boolean
     internal abstract val style: Style
 
-    internal val period: Period by lazy {
-        Period.fromDate(startTime)
+    internal val period: YearMonth by lazy {
+        YearMonth.of(startTime.year, startTime.month)
     }
 
     data class Event<T>(
         override val id: Long,
         override val title: CharSequence,
-        override val startTime: Calendar,
-        override val endTime: Calendar,
+        override var startTime: LocalDateTime,
+        override var endTime: LocalDateTime,
         override val subtitle: CharSequence?,
         override val isAllDay: Boolean,
         override val style: Style,
@@ -33,8 +34,8 @@ internal sealed class ResolvedWeekViewEntity {
         override val id: Long,
         override val title: CharSequence,
         override val subtitle: CharSequence?,
-        override val startTime: Calendar,
-        override val endTime: Calendar,
+        override var startTime: LocalDateTime,
+        override var endTime: LocalDateTime,
         override val style: Style
     ) : ResolvedWeekViewEntity() {
         override val isAllDay: Boolean = false
@@ -53,10 +54,10 @@ internal sealed class ResolvedWeekViewEntity {
         get() = isAllDay.not()
 
     internal val durationInMinutes: Int
-        get() = ((endTime.timeInMillis - startTime.timeInMillis).toFloat() / 60_000).roundToInt()
+        get() = Duration.between(startTime, endTime).toMinutes().toInt()
 
     internal val isMultiDay: Boolean
-        get() = startTime.isSameDate(endTime).not()
+        get() = startTime.toLocalDate() != endTime.toLocalDate()
 
     internal fun isWithin(
         minHour: Int,
@@ -68,25 +69,20 @@ internal sealed class ResolvedWeekViewEntity {
             return false
         }
 
-        if (startTime.isEqual(other.startTime) && endTime.isEqual(other.endTime)) {
-            // Complete overlap
-            return true
-        }
-
         // Resolve collisions by shortening the preceding event by 1 ms
         if (endTime.isEqual(other.startTime)) {
-            endTime -= Millis(1)
+            endTime = endTime.minusNanos(1)
             return false
         } else if (startTime.isEqual(other.endTime)) {
-            other.endTime -= Millis(1)
+            other.endTime = other.endTime.minusNanos(1)
         }
 
         return !startTime.isAfter(other.endTime) && !endTime.isBefore(other.startTime)
     }
 
     internal fun createCopy(
-        startTime: Calendar = this.startTime,
-        endTime: Calendar = this.endTime
+        startTime: LocalDateTime = this.startTime,
+        endTime: LocalDateTime = this.endTime,
     ): ResolvedWeekViewEntity = when (this) {
         is Event<*> -> copy(startTime = startTime, endTime = endTime)
         is BlockedTime -> copy(startTime = startTime, endTime = endTime)
@@ -99,8 +95,8 @@ internal fun WeekViewEntity.resolve(
     is WeekViewEntity.Event<*> -> ResolvedWeekViewEntity.Event(
         id = id,
         title = titleResource.resolve(context, semibold = true).processed,
-        startTime = startTime.withLocalTimeZone(),
-        endTime = endTime.withLocalTimeZone(),
+        startTime = startTime,
+        endTime = endTime,
         subtitle = subtitleResource?.resolve(context, semibold = false)?.processed,
         isAllDay = isAllDay,
         style = style.resolve(context),
@@ -110,8 +106,8 @@ internal fun WeekViewEntity.resolve(
         id = id,
         title = titleResource.resolve(context, semibold = true).processed,
         subtitle = subtitleResource?.resolve(context, semibold = false)?.processed,
-        startTime = startTime.withLocalTimeZone(),
-        endTime = endTime.withLocalTimeZone(),
+        startTime = startTime,
+        endTime = endTime,
         style = style.resolve(context)
     )
 }

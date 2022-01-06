@@ -1,6 +1,7 @@
 package com.alamkanak.weekview
 
-import java.util.Calendar
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 internal fun ResolvedWeekViewEntity.split(viewState: ViewState): List<ResolvedWeekViewEntity> {
     if (startTime >= endTime) {
@@ -22,26 +23,26 @@ private fun ResolvedWeekViewEntity.splitByDates(
 ): List<ResolvedWeekViewEntity> {
     val firstEvent = createCopy(
         startTime = startTime.limitToMinHour(minHour),
-        endTime = startTime.atEndOfDay.limitToMaxHour(maxHour)
+        endTime = startTime.atEndOfDay().limitToMaxHour(maxHour)
     )
 
     val results = mutableListOf<ResolvedWeekViewEntity>()
     results += firstEvent
 
-    val daysInBetween = endTime.toEpochDays() - startTime.toEpochDays() - 1
+    val daysInBetween = ChronoUnit.DAYS.between(startTime.toLocalDate(), endTime.toLocalDate())
 
     if (daysInBetween > 0) {
-        val currentDate = startTime.atStartOfDay + Days(1)
-        while (currentDate.toEpochDays() < endTime.toEpochDays()) {
+        var currentDate = startTime.atStartOfDay().plusDays(1)
+        while (currentDate.toLocalDate() < endTime.toLocalDate()) {
             val intermediateStart = currentDate.withTimeAtStartOfPeriod(minHour)
             val intermediateEnd = currentDate.withTimeAtEndOfPeriod(maxHour)
             results += createCopy(startTime = intermediateStart, endTime = intermediateEnd)
-            currentDate += Days(1)
+            currentDate = currentDate.plusDays(1)
         }
     }
 
     val lastEvent = createCopy(
-        startTime = endTime.atStartOfDay.limitToMinHour(minHour),
+        startTime = endTime.atStartOfDay().limitToMinHour(minHour),
         endTime = endTime.limitToMaxHour(maxHour)
     )
     results += lastEvent
@@ -54,7 +55,7 @@ private fun ResolvedWeekViewEntity.limitTo(minHour: Int, maxHour: Int) = createC
     endTime = endTime.limitToMaxHour(maxHour)
 )
 
-private fun Calendar.limitToMinHour(minHour: Int): Calendar {
+private fun LocalDateTime.limitToMinHour(minHour: Int): LocalDateTime {
     return if (hour < minHour) {
         withTimeAtStartOfPeriod(hour = minHour)
     } else {
@@ -62,7 +63,7 @@ private fun Calendar.limitToMinHour(minHour: Int): Calendar {
     }
 }
 
-private fun Calendar.limitToMaxHour(maxHour: Int): Calendar {
+private fun LocalDateTime.limitToMaxHour(maxHour: Int): LocalDateTime {
     return if (hour >= maxHour) {
         withTimeAtEndOfPeriod(hour = maxHour)
     } else {

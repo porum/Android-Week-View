@@ -1,7 +1,8 @@
 package com.alamkanak.weekview
 
 import android.graphics.RectF
-import java.util.Calendar
+import java.time.Duration
+import java.time.LocalDateTime
 
 /**
  * This class encapsulates a [ResolvedWeekViewEntity] and its visual representation, a [RectF] which
@@ -11,8 +12,8 @@ import java.util.Calendar
 internal data class EventChip(
     val event: ResolvedWeekViewEntity,
     val index: Int,
-    val startTime: Calendar,
-    val endTime: Calendar,
+    val startTime: LocalDateTime,
+    val endTime: LocalDateTime,
 ) {
 
     /**
@@ -31,7 +32,7 @@ internal data class EventChip(
     var bounds: RectF = RectF()
 
     val durationInMinutes: Int by lazy {
-        (endTime minutesUntil startTime).minutes
+        Duration.between(startTime, endTime).toMinutes().toInt()
     }
 
     /**

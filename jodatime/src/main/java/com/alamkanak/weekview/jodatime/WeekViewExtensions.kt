@@ -8,34 +8,49 @@ import org.joda.time.LocalDateTime
 import org.joda.time.LocalTime
 
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 fun <T : Any> WeekViewEntity.Event.Builder<T>.setStartTime(
     startTime: LocalDateTime
-) = setStartTime(startTime.toCalendar())
+) = setStartTime(startTime.toJsrLocalDateTime())
 
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 fun <T : Any> WeekViewEntity.Event.Builder<T>.setEndTime(
     endTime: LocalDateTime
-) = setEndTime(endTime.toCalendar())
+) = setEndTime(endTime.toJsrLocalDateTime())
 
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 fun WeekViewEntity.BlockedTime.Builder.setStartTime(
     startTime: LocalDateTime
-) = setStartTime(startTime.toCalendar())
+) = setStartTime(startTime.toJsrLocalDateTime())
 
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 fun WeekViewEntity.BlockedTime.Builder.setEndTime(
     endTime: LocalDateTime
-) = setEndTime(endTime.toCalendar())
+) = setEndTime(endTime.toJsrLocalDateTime())
 
 /**
  * Returns the minimum date that [WeekView] will display as a [LocalDate], or null if none is set.
  * Events before this date will not be shown.
  */
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 var WeekView.minDateAsLocalDate: LocalDate?
-    get() = minDate?.toLocalDate()
+    get() = minDate?.toJodaLocalDate()
     set(value) {
-        minDate = value?.toCalendar()
+        minDate = value?.toJsrLocalDate()
     }
 
 /**
@@ -43,25 +58,34 @@ var WeekView.minDateAsLocalDate: LocalDate?
  * Events after this date will not be shown.
  */
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 var WeekView.maxDateAsLocalDate: LocalDate?
-    get() = maxDate?.toLocalDate()
+    get() = maxDate?.toJodaLocalDate()
     set(value) {
-        maxDate = value?.toCalendar()
+        maxDate = value?.toJsrLocalDate()
     }
 
 /**
  * Returns the first visible date as a [LocalDate].
  */
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 val WeekView.firstVisibleDateAsLocalDate: LocalDate
-    get() = firstVisibleDate.toLocalDate()
+    get() = firstVisibleDate.toJodaLocalDate()
 
 /**
  * Returns the last visible date as a [LocalDate].
  */
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 val WeekView.lastVisibleDateAsLocalDate: LocalDate
-    get() = lastVisibleDate.toLocalDate()
+    get() = lastVisibleDate.toJodaLocalDate()
 
 /**
  * Scrolls to the specified date. Any provided [LocalDate] that falls outside the range of
@@ -70,8 +94,11 @@ val WeekView.lastVisibleDateAsLocalDate: LocalDate
  * @param date The [LocalDate] to scroll to.
  */
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 fun WeekView.scrollToDate(date: LocalDate) {
-    scrollToDate(date.toCalendar())
+    scrollToDate(date.toJsrLocalDate())
 }
 
 /**
@@ -82,8 +109,11 @@ fun WeekView.scrollToDate(date: LocalDate) {
  * @param dateTime The [LocalDateTime] to scroll to.
  */
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 fun WeekView.scrollToDateTime(dateTime: LocalDateTime) {
-    scrollToDateTime(dateTime.toCalendar())
+    scrollToDateTime(dateTime.toJsrLocalDateTime())
 }
 
 /**
@@ -93,11 +123,17 @@ fun WeekView.scrollToDateTime(dateTime: LocalDateTime) {
  * @param time The [LocalTime] to scroll to.
  */
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 fun WeekView.scrollToTime(time: LocalTime) {
-    scrollToTime(time.hourOfDay, time.secondOfMinute)
+    scrollToTime(time.toJsrLocalTime())
 }
 
 @PublicApi
+@Deprecated(
+    message = "Switch to using the Java 8 DateTime API via core-library desugaring. Support for JodaTime will be dropped in a future release.",
+)
 fun WeekView.setDateFormatter(formatter: (LocalDate) -> String) {
-    setDateFormatter { formatter(it.toLocalDate()) }
+    setDateFormatter { formatter(it.toJodaLocalDate()) }
 }

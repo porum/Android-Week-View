@@ -11,7 +11,9 @@ import android.text.TextPaint
 import android.util.SparseArray
 import androidx.collection.ArrayMap
 import androidx.core.content.ContextCompat
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.temporal.WeekFields
+import java.util.Locale
 import kotlin.math.roundToInt
 
 internal class HeaderRenderer(
@@ -80,13 +82,13 @@ private class HeaderUpdater(
     private val animator = ValueAnimator()
 
     override fun update() {
-        val missingDates = viewState.dateRange.filterNot { labelLayouts.hasKey(it.toEpochDays()) }
+        val missingDates = viewState.dateRange.filterNot { labelLayouts.hasKey(it.toEpochDay().toInt()) }
         for (date in missingDates) {
-            val key = date.toEpochDays()
+            val key = date.toEpochDay().toInt()
             labelLayouts.put(key, calculateStaticLayoutForDate(date))
         }
 
-        val dateLabels = viewState.dateRange.map { labelLayouts[it.toEpochDays()] }
+        val dateLabels = viewState.dateRange.map { labelLayouts[it.toEpochDay().toInt()] }
         updateHeaderHeight(dateLabels)
     }
 
@@ -120,7 +122,7 @@ private class HeaderUpdater(
         )
     }
 
-    private fun calculateStaticLayoutForDate(date: Calendar): StaticLayout {
+    private fun calculateStaticLayoutForDate(date: LocalDate): StaticLayout {
         val dayLabel = viewState.dateFormatter(date)
         val textPaint = when {
             date.isToday -> viewState.todayHeaderTextPaint
@@ -150,7 +152,7 @@ private class DateLabelsDrawer(
         val bounds = viewState.weekNumberBounds
         val date = viewState.dateRange.first()
 
-        val key = date.toEpochDays()
+        val key = date.toEpochDay().toInt()
         val textLayout = dateLabelLayouts[key]
 
         withTranslation(
@@ -163,14 +165,14 @@ private class DateLabelsDrawer(
 
     private fun Canvas.drawDateLabelInMultiDayView() {
         drawInBounds(viewState.headerBounds) {
-            viewState.dateRangeWithStartPixels.forEach { (date, startPixel) ->
+            for ((date, startPixel) in viewState.dateRangeWithStartPixels) {
                 drawLabel(date, startPixel)
             }
         }
     }
 
-    private fun Canvas.drawLabel(date: Calendar, startPixel: Float) {
-        val key = date.toEpochDays()
+    private fun Canvas.drawLabel(date: LocalDate, startPixel: Float) {
+        val key = date.toEpochDay().toInt()
         val textLayout = dateLabelLayouts[key]
 
         withTranslation(
@@ -235,7 +237,7 @@ private class AllDayEventsUpdater(
         viewState.currentAllDayEventHeight = maximumChipHeight
 
         val maximumChipsPerDay = eventsLabelLayouts.keys
-            .groupBy { it.event.startTime.toEpochDays() }
+            .groupBy { it.event.startTime.toLocalDate().toEpochDay().toInt() }
             .values
             .maxByOrNull { it.size }?.size ?: 0
 
@@ -272,7 +274,7 @@ internal class AllDayEventsDrawer(
     override fun draw(canvas: Canvas) = canvas.drawInBounds(viewState.headerBounds) {
         for (date in viewState.dateRange) {
             val events = allDayEventLayouts
-                .filter { it.key.event.startTime.isSameDate(date) }
+                .filter { it.key.event.startTime.toLocalDate() == date }
                 .toList()
 
             if (viewState.arrangeAllDayEventsVertically) {
@@ -292,7 +294,9 @@ internal class AllDayEventsDrawer(
     private fun Canvas.renderEventsVertically(events: List<Pair<EventChip, StaticLayout>>) {
         // Un-hide all events. To prevent any click handler from mapping a click to a hidden event,
         // we set isHidden to true for all events that aren't shown in the collapsed state.
-        events.forEach { it.first.isHidden = false }
+        for ((eventChip, _) in events) {
+            eventChip.isHidden = false
+        }
 
         if (viewState.allDayEventsExpanded || events.size <= 2) {
             // Draw them all!
@@ -382,7 +386,8 @@ private class HeaderDrawer(
     }
 
     private fun Canvas.drawWeekNumber() {
-        val weekNumber = viewState.dateRange.first().weekOfYear.toString()
+        val weekOfYear = WeekFields.of(Locale.getDefault()).weekOfYear()
+        val weekNumber = viewState.dateRange.first().get(weekOfYear)
 
         val bounds = viewState.weekNumberBounds
         val textPaint = viewState.weekNumberTextPaint
@@ -406,7 +411,7 @@ private class HeaderDrawer(
         val radius = viewState.weekNumberBackgroundCornerRadius
         drawRoundRect(backgroundRect, radius, radius, backgroundPaint)
 
-        drawText(weekNumber, bounds.centerX(), bounds.centerY() + textOffset, textPaint)
+        drawText(weekNumber.toString(), bounds.centerX(), bounds.centerY() + textOffset, textPaint)
     }
 
     private fun Canvas.drawTimeColumnSeparatorExtension() {

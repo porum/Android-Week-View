@@ -2,10 +2,8 @@ package com.alamkanak.weekview.sample.ui
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.alamkanak.weekview.WeekView
 import com.alamkanak.weekview.WeekViewEntity
-import com.alamkanak.weekview.jsr310.WeekViewPagingAdapterJsr310
-import com.alamkanak.weekview.jsr310.maxDateAsLocalDate
-import com.alamkanak.weekview.jsr310.minDateAsLocalDate
 import com.alamkanak.weekview.sample.data.model.CalendarEntity
 import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
 import com.alamkanak.weekview.sample.databinding.ActivityLimitedBinding
@@ -35,8 +33,8 @@ class LimitedActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.toolbarContainer.toolbar.setupWithWeekView(binding.weekView)
-        binding.weekView.minDateAsLocalDate = YearMonth.now().atDay(1)
-        binding.weekView.maxDateAsLocalDate = YearMonth.now().atEndOfMonth()
+        binding.weekView.minDate = YearMonth.now().atDay(1)
+        binding.weekView.maxDate = YearMonth.now().atEndOfMonth()
 
         binding.weekView.adapter = adapter
 
@@ -52,7 +50,7 @@ class LimitedActivity : AppCompatActivity() {
 
 private class LimitedActivityWeekViewAdapter(
     private val loadMoreHandler: (List<YearMonth>) -> Unit
-) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
+) : WeekView.PagingAdapter<CalendarEntity>() {
 
     override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
 

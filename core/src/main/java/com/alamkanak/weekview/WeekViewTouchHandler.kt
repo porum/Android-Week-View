@@ -1,6 +1,6 @@
 package com.alamkanak.weekview
 
-import java.util.Calendar
+import java.time.LocalDateTime
 
 internal data class LongClickResult(
     val eventChip: EventChip,
@@ -57,12 +57,12 @@ internal class WeekViewTouchHandler(
      *
      * @param touchX The x coordinate of the touch event.
      * @param touchY The y coordinate of the touch event.
-     * @return The [Calendar] of the clicked position, or null if none was found.
+     * @return The [LocalDateTime] of the clicked position, or null if none was found.
      */
     internal fun calculateTimeFromPoint(
         touchX: Float,
         touchY: Float
-    ): Calendar? {
+    ): LocalDateTime? {
         val dateRange = viewState.dateRangeWithStartPixels
 
         for ((date, startPixel) in dateRange) {
@@ -77,7 +77,7 @@ internal class WeekViewTouchHandler(
                 val pixelsFromFullHour = pixelsFromMidnight - hour * hourHeight
                 val minutes = ((pixelsFromFullHour / hourHeight) * 60).toInt()
 
-                return date.withTime(viewState.minHour + hour, minutes)
+                return date.atTime(viewState.minHour + hour, minutes)
             }
         }
 

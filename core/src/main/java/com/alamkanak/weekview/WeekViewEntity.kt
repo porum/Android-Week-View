@@ -4,7 +4,7 @@ import androidx.annotation.ColorInt
 import androidx.annotation.ColorRes
 import androidx.annotation.DimenRes
 import androidx.annotation.Dimension
-import java.util.Calendar
+import java.time.LocalDateTime
 
 /**
  * Encapsulates all information necessary to render an entity in [WeekView]. This entity can be
@@ -15,8 +15,8 @@ sealed class WeekViewEntity {
     data class Event<T> internal constructor(
         internal val id: Long = 0L,
         internal val titleResource: TextResource,
-        internal val startTime: Calendar = now(),
-        internal val endTime: Calendar = now(),
+        internal val startTime: LocalDateTime = LocalDateTime.now(),
+        internal val endTime: LocalDateTime = LocalDateTime.now(),
         internal val subtitleResource: TextResource? = null,
         internal val isAllDay: Boolean = false,
         internal val style: Style = Style(),
@@ -28,8 +28,8 @@ sealed class WeekViewEntity {
             private var id: Long? = null
             private var title: TextResource? = null
             private var subtitle: TextResource? = null
-            private var startTime: Calendar? = null
-            private var endTime: Calendar? = null
+            private var startTime: LocalDateTime? = null
+            private var endTime: LocalDateTime? = null
             private var style: Style? = null
             private var isAllDay: Boolean = false
 
@@ -52,13 +52,13 @@ sealed class WeekViewEntity {
             }
 
             @PublicApi
-            fun setStartTime(startTime: Calendar): Builder<T> {
+            fun setStartTime(startTime: LocalDateTime): Builder<T> {
                 this.startTime = startTime
                 return this
             }
 
             @PublicApi
-            fun setEndTime(endTime: Calendar): Builder<T> {
+            fun setEndTime(endTime: LocalDateTime): Builder<T> {
                 this.endTime = endTime
                 return this
             }
@@ -104,8 +104,8 @@ sealed class WeekViewEntity {
         internal val id: Long = 0L,
         internal val titleResource: TextResource,
         internal val subtitleResource: TextResource? = null,
-        internal val startTime: Calendar = now(),
-        internal val endTime: Calendar = now(),
+        internal val startTime: LocalDateTime = LocalDateTime.now(),
+        internal val endTime: LocalDateTime = LocalDateTime.now(),
         internal val style: Style = Style()
     ) : WeekViewEntity() {
 
@@ -114,8 +114,8 @@ sealed class WeekViewEntity {
             private var id: Long? = null
             private var title: TextResource? = null
             private var subtitle: TextResource? = null
-            private var startTime: Calendar? = null
-            private var endTime: Calendar? = null
+            private var startTime: LocalDateTime? = null
+            private var endTime: LocalDateTime? = null
             private var style: Style? = null
 
             @PublicApi
@@ -137,13 +137,13 @@ sealed class WeekViewEntity {
             }
 
             @PublicApi
-            fun setStartTime(startTime: Calendar): Builder {
+            fun setStartTime(startTime: LocalDateTime): Builder {
                 this.startTime = startTime
                 return this
             }
 
             @PublicApi
-            fun setEndTime(endTime: Calendar): Builder {
+            fun setEndTime(endTime: LocalDateTime): Builder {
                 this.endTime = endTime
                 return this
             }

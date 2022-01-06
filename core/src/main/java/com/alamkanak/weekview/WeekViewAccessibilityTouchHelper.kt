@@ -6,10 +6,10 @@ import android.view.accessibility.AccessibilityEvent
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat.AccessibilityActionCompat
 import androidx.customview.widget.ExploreByTouchHelper
-import java.text.DateFormat.LONG
-import java.text.DateFormat.SHORT
-import java.text.SimpleDateFormat
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle.LONG
+import java.time.format.FormatStyle.SHORT
 import kotlin.math.roundToInt
 
 internal class WeekViewAccessibilityTouchHelper(
@@ -19,8 +19,8 @@ internal class WeekViewAccessibilityTouchHelper(
     private val eventChipsCacheProvider: EventChipsCacheProvider
 ) : ExploreByTouchHelper(view) {
 
-    private val dateFormatter = SimpleDateFormat.getDateInstance(LONG)
-    private val dateTimeFormatter = SimpleDateFormat.getDateTimeInstance(LONG, SHORT)
+    private val dateFormatter = DateTimeFormatter.ofLocalizedDate(LONG)
+    private val dateTimeFormatter = DateTimeFormatter.ofLocalizedDateTime(LONG, SHORT)
 
     private val store = VirtualViewIdStore()
 
@@ -34,7 +34,7 @@ internal class WeekViewAccessibilityTouchHelper(
 
         // If no event chip was hit, we still want to inform the user what date they
         // just interacted with
-        val date = touchHandler.calculateTimeFromPoint(x, y)?.atStartOfDay
+        val date = touchHandler.calculateTimeFromPoint(x, y)?.toLocalDate()
         val dateVirtualViewId = date?.let { store[it] }
         if (dateVirtualViewId != null) {
             return dateVirtualViewId
@@ -91,16 +91,18 @@ internal class WeekViewAccessibilityTouchHelper(
 
     private fun onPerformActionForDate(
         virtualViewId: Int,
-        date: Calendar,
+        date: LocalDate,
         action: Int
     ): Boolean = when (action) {
         AccessibilityNodeInfoCompat.ACTION_CLICK -> {
-            touchHandler.adapter?.onEmptyViewClick(date)
+            // TODO: Why do these need to be called here?
+//            touchHandler.adapter?.onEmptyViewClick(date)
             sendEventForVirtualView(virtualViewId, AccessibilityEvent.TYPE_VIEW_CLICKED)
             true
         }
         AccessibilityNodeInfoCompat.ACTION_LONG_CLICK -> {
-            touchHandler.adapter?.onEmptyViewLongClick(date)
+            // TODO: Why do these need to be called here?
+//            touchHandler.adapter?.onEmptyViewLongClick(date)
             sendEventForVirtualView(virtualViewId, AccessibilityEvent.TYPE_VIEW_LONG_CLICKED)
             true
         }
@@ -140,7 +142,7 @@ internal class WeekViewAccessibilityTouchHelper(
     }
 
     private fun populateNodeWithDateInfo(
-        date: Calendar,
+        date: LocalDate,
         node: AccessibilityNodeInfoCompat
     ) {
         node.contentDescription = createDescriptionForVirtualView(date)
@@ -161,31 +163,31 @@ internal class WeekViewAccessibilityTouchHelper(
     }
 
     private fun createDescriptionForVirtualView(event: ResolvedWeekViewEntity): String {
-        val date = dateTimeFormatter.format(event.startTime.time)
+        val date = dateTimeFormatter.format(event.startTime)
         return "$date: ${event.title}, ${event.subtitle}"
     }
 
-    private fun createDescriptionForVirtualView(date: Calendar): String {
-        return dateFormatter.format(date.time)
+    private fun createDescriptionForVirtualView(date: LocalDate): String {
+        return dateFormatter.format(date)
     }
 }
 
 private class VirtualViewIdStore {
 
     private val eventChips = mutableListOf<EventChip>()
-    private val dates = mutableListOf<Calendar>()
+    private val dates = mutableListOf<LocalDate>()
 
     private val eventChipVirtualViewIds = mutableListOf<Int>()
     private val dateVirtualViewIds = mutableListOf<Int>()
 
     private var maximumId = 0
 
-    operator fun get(eventChip: EventChip): Int? {
+    operator fun get(eventChip: EventChip): Int {
         val index = eventChips.indexOf(eventChip)
         return eventChipVirtualViewIds[index]
     }
 
-    operator fun get(date: Calendar): Int? {
+    operator fun get(date: LocalDate): Int {
         val index = dates.indexOf(date)
         return dateVirtualViewIds[index]
     }
@@ -199,14 +201,13 @@ private class VirtualViewIdStore {
 
     fun findDate(
         virtualViewId: Int
-    ): Calendar? {
+    ): LocalDate? {
         val index = dateVirtualViewIds.indexOfFirst { it == virtualViewId }
         return if (index != -1) dates[index] else null
     }
 
-    fun put(date: Calendar): Int {
-        val startOfDay = date.atStartOfDay
-        val index = dates.indexOf(startOfDay)
+    fun put(date: LocalDate): Int {
+        val index = dates.indexOf(date)
 
         return if (index != -1) {
             dateVirtualViewIds[index]

@@ -17,21 +17,25 @@ import java.util.Calendar
  * @param T The type of elements that are displayed in the corresponding [WeekView].
  */
 @PublicApi
+@Deprecated(
+    message = "Switch to using WeekView.SimpleAdapter<T> with the the Java 8 DateTime API. Support for JodaTime-specific adapters will be dropped in a future release.",
+)
 abstract class WeekViewSimpleAdapterJodaTime<T> : WeekView.SimpleAdapter<T>() {
-    final override fun onEmptyViewClick(time: Calendar) {
-        onEmptyViewClick(time.toLocalDateTime())
+
+    final override fun onEmptyViewClick(time: JsrLocalDateTime) {
+        onEmptyViewClick(time.toJodaLocalDateTime())
     }
 
-    final override fun onEmptyViewLongClick(time: Calendar) {
-        onEmptyViewLongClick(time.toLocalDateTime())
+    final override fun onEmptyViewLongClick(time: JsrLocalDateTime) {
+        onEmptyViewLongClick(time.toJodaLocalDateTime())
     }
 
-    final override fun onDragAndDropFinished(data: T, newStartTime: Calendar, newEndTime: Calendar) {
-        onDragAndDropFinished(data, newStartTime.toLocalDateTime(), newEndTime.toLocalDateTime())
+    final override fun onDragAndDropFinished(data: T, newStartTime: JsrLocalDateTime, newEndTime: JsrLocalDateTime) {
+        onDragAndDropFinished(data, newStartTime.toJodaLocalDateTime(), newEndTime.toJodaLocalDateTime())
     }
 
-    final override fun onRangeChanged(firstVisibleDate: Calendar, lastVisibleDate: Calendar) {
-        onRangeChanged(firstVisibleDate.toLocalDate(), lastVisibleDate.toLocalDate())
+    final override fun onRangeChanged(firstVisibleDate: JsrLocalDate, lastVisibleDate: JsrLocalDate) {
+        onRangeChanged(firstVisibleDate.toJodaLocalDate(), lastVisibleDate.toJodaLocalDate())
     }
 
     /**
@@ -84,26 +88,29 @@ abstract class WeekViewSimpleAdapterJodaTime<T> : WeekView.SimpleAdapter<T>() {
  * @param T The type of elements that are displayed in the corresponding [WeekView].
  */
 @PublicApi
+@Deprecated(
+    message = "Switch to using WeekView.SimpleAdapter<T> with the the Java 8 DateTime API. Support for JodaTime-specific adapters will be dropped in a future release.",
+)
 abstract class WeekViewPagingAdapterJodaTime<T> : WeekView.PagingAdapter<T>() {
 
-    final override fun onEmptyViewClick(time: Calendar) {
-        onEmptyViewClick(time.toLocalDateTime())
+    final override fun onEmptyViewClick(time: JsrLocalDateTime) {
+        onEmptyViewClick(time.toJodaLocalDateTime())
     }
 
-    final override fun onEmptyViewLongClick(time: Calendar) {
-        onEmptyViewLongClick(time.toLocalDateTime())
+    final override fun onEmptyViewLongClick(time: JsrLocalDateTime) {
+        onEmptyViewLongClick(time.toJodaLocalDateTime())
     }
 
-    final override fun onDragAndDropFinished(data: T, newStartTime: Calendar, newEndTime: Calendar) {
-        onDragAndDropFinished(data, newStartTime.toLocalDateTime(), newEndTime.toLocalDateTime())
+    final override fun onDragAndDropFinished(data: T, newStartTime: JsrLocalDateTime, newEndTime: JsrLocalDateTime) {
+        onDragAndDropFinished(data, newStartTime.toJodaLocalDateTime(), newEndTime.toJodaLocalDateTime())
     }
 
-    final override fun onRangeChanged(firstVisibleDate: Calendar, lastVisibleDate: Calendar) {
-        onRangeChanged(firstVisibleDate.toLocalDate(), lastVisibleDate.toLocalDate())
+    final override fun onRangeChanged(firstVisibleDate: JsrLocalDate, lastVisibleDate: JsrLocalDate) {
+        onRangeChanged(firstVisibleDate.toJodaLocalDate(), lastVisibleDate.toJodaLocalDate())
     }
 
-    final override fun onLoadMore(startDate: Calendar, endDate: Calendar) {
-        onLoadMore(startDate.toLocalDate(), endDate.toLocalDate())
+    final override fun onLoadMore(startDate: JsrLocalDate, endDate: JsrLocalDate) {
+        onLoadMore(startDate.toJodaLocalDate(), endDate.toJodaLocalDate())
     }
 
     /**

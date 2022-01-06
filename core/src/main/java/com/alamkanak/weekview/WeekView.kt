@@ -13,7 +13,11 @@ import android.view.View
 import android.view.accessibility.AccessibilityManager
 import androidx.annotation.RequiresApi
 import androidx.core.view.ViewCompat
-import java.util.Calendar
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.YearMonth
+import java.time.temporal.ChronoUnit
 import kotlin.math.abs
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -170,17 +174,20 @@ class WeekView @JvmOverloads constructor(
     override fun onSizeChanged(width: Int, height: Int, oldWidth: Int, oldHeight: Int) {
         super.onSizeChanged(width, height, oldWidth, oldHeight)
         viewState.onSizeChanged(width, height)
-        renderers.forEach { it.onSizeChanged(width, height) }
+
+        for (renderer in renderers) {
+            renderer.onSizeChanged(width, height)
+        }
     }
 
-    private fun updateDateRange(): List<Calendar> {
+    private fun updateDateRange(): List<LocalDate> {
         val daysScrolled = viewState.currentOrigin.x / viewState.dayWidth
         val delta = daysScrolled.roundToInt() * (-1)
 
         val firstVisibleDate = if (viewState.isLtr) {
-            today() + Days(delta)
+            LocalDate.now().plusDays(delta)
         } else {
-            today() - Days(delta)
+            LocalDate.now().minusDays(delta)
         }
 
         val dateRange = viewState.createDateRange(firstVisibleDate)
@@ -192,7 +199,7 @@ class WeekView @JvmOverloads constructor(
         val newDateRange = updateDateRange()
         val newFirstVisibleDate = newDateRange.first()
 
-        val didFirstVisibleDateChange = !currentFirstVisibleDate.isSameDate(newFirstVisibleDate)
+        val didFirstVisibleDateChange = currentFirstVisibleDate != newFirstVisibleDate
         viewState.firstVisibleDate = newFirstVisibleDate
 
         if (didFirstVisibleDateChange) {
@@ -1066,15 +1073,15 @@ class WeekView @JvmOverloads constructor(
      * this date will not be shown.
      */
     @PublicApi
-    var minDate: Calendar?
-        get() = viewState.minDate?.copy()
+    var minDate: LocalDate?
+        get() = viewState.minDate
         set(value) {
             val maxDate = viewState.maxDate
             if (maxDate != null && value != null && value.isAfter(maxDate)) {
                 throw IllegalArgumentException("Can't set a minDate that's after maxDate")
             }
 
-            viewState.minDate = value?.copy()
+            viewState.minDate = value
             invalidate()
         }
 
@@ -1083,15 +1090,15 @@ class WeekView @JvmOverloads constructor(
      * this date will not be shown.
      */
     @PublicApi
-    var maxDate: Calendar?
-        get() = viewState.maxDate?.copy()
+    var maxDate: LocalDate?
+        get() = viewState.maxDate
         set(value) {
             val minDate = viewState.minDate
             if (minDate != null && value != null && value.isBefore(minDate)) {
                 throw IllegalArgumentException("Can't set a maxDate that's before minDate")
             }
 
-            viewState.maxDate = value?.copy()
+            viewState.maxDate = value
             invalidate()
         }
 
@@ -1168,15 +1175,15 @@ class WeekView @JvmOverloads constructor(
      * Returns the first visible date.
      */
     @PublicApi
-    val firstVisibleDate: Calendar
-        get() = viewState.dateRange.first().copy()
+    val firstVisibleDate: LocalDate
+        get() = viewState.dateRange.first()
 
     /**
      * Returns the last visible date.
      */
     @PublicApi
-    val lastVisibleDate: Calendar
-        get() = viewState.dateRange.last().copy()
+    val lastVisibleDate: LocalDate
+        get() = viewState.dateRange.last()
 
     /**
      * Scrolls to the specified date. Any provided [Calendar] that falls outside the range of
@@ -1185,8 +1192,8 @@ class WeekView @JvmOverloads constructor(
      * @param date A [Calendar] representing the date to scroll to.
      */
     @PublicApi
-    fun scrollToDate(date: Calendar) {
-        internalScrollToDate(date.withLocalTimeZone())
+    fun scrollToDate(date: LocalDate) {
+        internalScrollToDate(date)
     }
 
     /**
@@ -1197,10 +1204,9 @@ class WeekView @JvmOverloads constructor(
      * @param dateTime A [Calendar] representing the date time to scroll to.
      */
     @PublicApi
-    fun scrollToDateTime(dateTime: Calendar) {
-        val localeDate = dateTime.withLocalTimeZone()
-        internalScrollToDate(localeDate) {
-            scrollToTime(hour = it.hour, minute = it.minute)
+    fun scrollToDateTime(dateTime: LocalDateTime) {
+        internalScrollToDate(dateTime.toLocalDate()) {
+            scrollToTime(time = dateTime.toLocalTime())
         }
     }
 
@@ -1212,22 +1218,24 @@ class WeekView @JvmOverloads constructor(
      * @param minute The minute to scroll to.
      */
     @PublicApi
-    fun scrollToTime(hour: Int, minute: Int) {
+//    fun scrollToTime(hour: Int, minute: Int) {
+    fun scrollToTime(time: LocalTime) {
         if (isWaitingToBeLaidOut) {
             // If the view's dimensions have just changed or if it hasn't been laid out yet, we
             // postpone the action until onDraw() is called the next time.
-            viewState.pendingScroll = viewState.firstVisibleDate.withTime(hour, minute)
+            viewState.pendingScroll = viewState.firstVisibleDate.atTime(time)
             return
         }
 
-        val sanitizedHour = hour.coerceIn(minimumValue = minHour, maximumValue = maxHour)
-        val desired = now().withTime(hour = sanitizedHour, minutes = 0)
+        val coercedHour = time.hour.coerceIn(minimumValue = minHour, maximumValue = maxHour)
+        val desired = time.withHour(coercedHour).truncatedTo(ChronoUnit.HOURS)
 
-        if (desired.hour > minHour) {
+        // TODO: This is duplicated code!
+        val actual = if (desired.hour > minHour) {
             // Add some padding above the current time (and thus: the now line)
-            desired -= Hours(1)
+            desired.minusHours(1)
         } else {
-            desired -= Minutes(desired.minute)
+            desired.minusMinutes(desired.minute)
         }
 
         val fraction = desired.minute / 60f
@@ -1242,10 +1250,10 @@ class WeekView @JvmOverloads constructor(
         navigator.scrollVerticallyTo(offset = finalOffset)
     }
 
-    private fun internalScrollToDate(date: Calendar, onComplete: (Calendar) -> Unit = {}) {
+    private fun internalScrollToDate(date: LocalDate, onComplete: () -> Unit = {}) {
         val adjustedDate = viewState.getStartDateInAllowedRange(date)
-        if (adjustedDate.toEpochDays() == viewState.firstVisibleDate.toEpochDays()) {
-            onComplete(adjustedDate)
+        if (adjustedDate == viewState.firstVisibleDate) {
+            onComplete()
             return
         }
 
@@ -1254,12 +1262,12 @@ class WeekView @JvmOverloads constructor(
         if (isWaitingToBeLaidOut) {
             // If the view's dimensions have just changed or if it hasn't been laid out yet, we
             // postpone the action until onDraw() is called the next time.
-            viewState.pendingScroll = adjustedDate
+            viewState.pendingScroll = adjustedDate.atTime(LocalTime.now())
             return
         }
 
         navigator.scrollHorizontallyTo(date = adjustedDate) {
-            onComplete(adjustedDate)
+            onComplete()
         }
     }
 
@@ -1514,21 +1522,21 @@ class WeekView @JvmOverloads constructor(
          * @param newStartTime The new start time that the event was dragged to
          * @param newEndTime THe new end time that the event was dragged to
          */
-        open fun onDragAndDropFinished(data: T, newStartTime: Calendar, newEndTime: Calendar) = Unit
+        open fun onDragAndDropFinished(data: T, newStartTime: LocalDateTime, newEndTime: LocalDateTime) = Unit
 
         /**
          * Returns the date and time of the location that the user clicked on.
          *
-         * @param time A [Calendar] with the date and time
+         * @param time A [LocalDateTime] with the date and time
          */
-        open fun onEmptyViewClick(time: Calendar) = Unit
+        open fun onEmptyViewClick(time: LocalDateTime) = Unit
 
         /**
          * Returns the date and time of the location that the user long-clicked on.
          *
-         * @param time A [Calendar] with the date and time
+         * @param time A [LocalDateTime] with the date and time
          */
-        open fun onEmptyViewLongClick(time: Calendar) = Unit
+        open fun onEmptyViewLongClick(time: LocalDateTime) = Unit
 
         /**
          * Called whenever the range of dates visible in [WeekView] changes. The list of dates is
@@ -1538,7 +1546,7 @@ class WeekView @JvmOverloads constructor(
          * @param firstVisibleDate A [Calendar] representing the first visible date
          * @param lastVisibleDate A [Calendar] representing the last visible date
          */
-        open fun onRangeChanged(firstVisibleDate: Calendar, lastVisibleDate: Calendar) = Unit
+        open fun onRangeChanged(firstVisibleDate: LocalDate, lastVisibleDate: LocalDate) = Unit
 
         /**
          * Called whenever the vertical scroll position in [WeekView] changes. A [distance] > 0
@@ -1630,7 +1638,7 @@ class WeekView @JvmOverloads constructor(
          * @param endDate A [Calendar] of the last date of the month that needs to be fetched
          */
         @PublicApi
-        open fun onLoadMore(startDate: Calendar, endDate: Calendar) = Unit
+        open fun onLoadMore(startDate: LocalDate, endDate: LocalDate) = Unit
 
         /**
          * Refreshes the elements presented by this adapter. All cached elements will be removed and
@@ -1656,7 +1664,7 @@ class WeekView @JvmOverloads constructor(
             }
         }
 
-        private fun fetchPeriods(periods: List<Period>) {
+        private fun fetchPeriods(periods: List<YearMonth>) {
             val grouped = periods.groupConsecutivePeriods()
 
             for (period in periods) {
@@ -1671,8 +1679,8 @@ class WeekView @JvmOverloads constructor(
             }
         }
 
-        private fun List<Period>.groupConsecutivePeriods(): List<List<Period>> {
-            val emptyList = mutableListOf<MutableList<Period>>()
+        private fun List<YearMonth>.groupConsecutivePeriods(): List<List<YearMonth>> {
+            val emptyList = mutableListOf<MutableList<YearMonth>>()
             return fold(emptyList) { accumulator, period ->
                 val lastPeriodInList = accumulator.lastOrNull()?.last()
                 val isConsecutive = lastPeriodInList?.next == period

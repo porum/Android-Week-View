@@ -10,7 +10,7 @@ import com.alamkanak.weekview.Direction.Left
 import com.alamkanak.weekview.Direction.None
 import com.alamkanak.weekview.Direction.Right
 import com.alamkanak.weekview.Direction.Vertical
-import java.util.Calendar
+import java.time.LocalDate
 import kotlin.math.abs
 import kotlin.math.roundToInt
 
@@ -43,7 +43,7 @@ internal class WeekViewGestureHandler(
 
     private val gestureDetector = GestureDetector(context, this)
 
-    private var preFlingFirstVisibleDate: Calendar = today()
+    private var preFlingFirstVisibleDate: LocalDate = LocalDate.now()
 
     override fun onDown(e: MotionEvent): Boolean {
         if (scrollDirection == None && flingDirection != None) {
@@ -161,7 +161,7 @@ internal class WeekViewGestureHandler(
     private fun goToNearestWeek() {
         val firstVisibleDate = viewState.firstVisibleDate
         val nearestOriginDate = viewState.currentDate
-        val daysScrolled = abs(firstVisibleDate.toEpochDays() - nearestOriginDate.toEpochDays())
+        val daysScrolled = abs(firstVisibleDate.toEpochDay() - nearestOriginDate.toEpochDay())
 
         val scrollTarget = if (daysScrolled > 3) {
             if (nearestOriginDate < firstVisibleDate) {
@@ -204,7 +204,7 @@ internal class WeekViewGestureHandler(
         }
 
         if (event.action == ACTION_DOWN) {
-            preFlingFirstVisibleDate = viewState.firstVisibleDate.copy()
+            preFlingFirstVisibleDate = viewState.firstVisibleDate
         }
 
         if (event.action == ACTION_MOVE && dragHandler.isDragging) {
@@ -240,21 +240,21 @@ internal class WeekViewGestureHandler(
     }
 }
 
-private fun Calendar.performFling(direction: Direction, viewState: ViewState): Calendar {
-    val daysDelta = Days(viewState.numberOfVisibleDays)
+private fun LocalDate.performFling(direction: Direction, viewState: ViewState): LocalDate {
+    val daysDelta = viewState.numberOfVisibleDays
     return when (direction) {
         Left -> {
             if (viewState.isLtr) {
-                this + daysDelta
+                this.plusDays(daysDelta)
             } else {
-                this - daysDelta
+                this.minusDays(daysDelta)
             }
         }
         Right -> {
             if (viewState.isLtr) {
-                this - daysDelta
+                this.minusDays(daysDelta)
             } else {
-                this + daysDelta
+                this.plusDays(daysDelta)
             }
         }
         else -> throw IllegalStateException()

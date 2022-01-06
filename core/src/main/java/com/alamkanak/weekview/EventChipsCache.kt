@@ -1,6 +1,6 @@
 package com.alamkanak.weekview
 
-import java.util.Calendar
+import java.time.LocalDate
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
 
@@ -15,30 +15,30 @@ internal class EventChipsCache {
     private val allDayEventChipsByDate = ConcurrentHashMap<Long, CopyOnWriteArrayList<EventChip>>()
 
     fun allEventChipsInDateRange(
-        dateRange: List<Calendar>
+        dateRange: List<LocalDate>
     ): List<EventChip> {
         val results = mutableListOf<EventChip>()
         for (date in dateRange) {
-            results += allDayEventChipsByDate[date.atStartOfDay.timeInMillis].orEmpty()
-            results += normalEventChipsByDate[date.atStartOfDay.timeInMillis].orEmpty()
+            results += allDayEventChipsByDate[date.toEpochDay()].orEmpty()
+            results += normalEventChipsByDate[date.toEpochDay()].orEmpty()
         }
         return results
     }
 
     fun normalEventChipsByDate(
-        date: Calendar
-    ): List<EventChip> = normalEventChipsByDate[date.atStartOfDay.timeInMillis].orEmpty()
+        date: LocalDate
+    ): List<EventChip> = normalEventChipsByDate[date.toEpochDay()].orEmpty()
 
     fun allDayEventChipsByDate(
-        date: Calendar
-    ): List<EventChip> = allDayEventChipsByDate[date.atStartOfDay.timeInMillis].orEmpty()
+        date: LocalDate
+    ): List<EventChip> = allDayEventChipsByDate[date.toEpochDay()].orEmpty()
 
     fun allDayEventChipsInDateRange(
-        dateRange: List<Calendar>
+        dateRange: List<LocalDate>
     ): List<EventChip> {
         val results = mutableListOf<EventChip>()
         for (date in dateRange) {
-            results += allDayEventChipsByDate[date.atStartOfDay.timeInMillis].orEmpty()
+            results += allDayEventChipsByDate[date.toEpochDay()].orEmpty()
         }
         return results
     }
@@ -57,7 +57,7 @@ internal class EventChipsCache {
         }
 
         for (eventChip in eventChips) {
-            val key = eventChip.startTime.atStartOfDay.timeInMillis
+            val key = eventChip.startTime.toLocalDate().toEpochDay()
 
             if (eventChip.event.isAllDay) {
                 allDayEventChipsByDate.addOrReplace(key, eventChip)
@@ -90,7 +90,7 @@ internal class EventChipsCache {
     }
 
     private fun remove(eventChip: EventChip) {
-        val key = eventChip.startTime.atStartOfDay.timeInMillis
+        val key = eventChip.startTime.toLocalDate().toEpochDay()
         val eventId = eventChip.eventId
 
         if (eventChip.event.isAllDay) {

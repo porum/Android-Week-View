@@ -5,7 +5,7 @@ import com.alamkanak.weekview.util.createResolvedWeekViewEvent
 import com.nhaarman.mockitokotlin2.mock
 import org.junit.Assert.assertEquals
 import org.junit.Test
-import org.mockito.Mockito.mock
+import java.time.LocalDate
 import org.mockito.Mockito.`when` as whenever
 
 class WeekViewEventSplitterTest {
@@ -17,8 +17,8 @@ class WeekViewEventSplitterTest {
         whenever(viewState.minHour).thenReturn(0)
         whenever(viewState.maxHour).thenReturn(24)
 
-        val startTime = today().withHour(11)
-        val endTime = startTime + Hours(2)
+        val startTime = LocalDate.now().atTime(11, 0)
+        val endTime = startTime.plusHours(2)
         val event = createResolvedWeekViewEvent(startTime, endTime)
 
         val results = event.split(viewState)
@@ -33,8 +33,8 @@ class WeekViewEventSplitterTest {
         whenever(viewState.maxHour).thenReturn(21)
 
         val event = createResolvedWeekViewEvent(
-            startTime = today().withHour(1),
-            endTime = today().withHour(2)
+            startTime = LocalDate.now().atTime(1, 0),
+            endTime = LocalDate.now().atTime(2, 0),
         )
         val results = event.split(viewState)
 
@@ -47,8 +47,8 @@ class WeekViewEventSplitterTest {
         whenever(viewState.maxHour).thenReturn(21)
 
         val event = createResolvedWeekViewEvent(
-            startTime = today().withHour(22),
-            endTime = today().plus(Days(1)).withHour(6)
+            startTime = LocalDate.now().atTime(22, 0),
+            endTime = LocalDate.now().plusDays(1).atTime(6, 0)
         )
 
         val results = event.split(viewState)
@@ -61,18 +61,21 @@ class WeekViewEventSplitterTest {
         whenever(viewState.minHour).thenReturn(10)
         whenever(viewState.maxHour).thenReturn(20)
 
-        val startTime = today().withHour(8)
-        val endTime = today().withHour(12)
+        val startTime = LocalDate.now().atTime(8, 0)
+        val endTime = LocalDate.now().atTime(12, 0)
 
         val event = createResolvedWeekViewEvent(startTime, endTime)
         val results = event.split(viewState)
 
         val expected = listOf(
-            Event(today().withHour(10), today().withHour(12))
+            Event(
+                startTime = LocalDate.now().atTime(10, 0),
+                endTime = LocalDate.now().atTime(12, 0),
+            )
         )
 
-        val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
+        val expectedTimes = expected.map { it.startTime to it.endTime }
+        val resultTimes = results.map { it.startTime to it.endTime }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -82,18 +85,21 @@ class WeekViewEventSplitterTest {
         whenever(viewState.minHour).thenReturn(10)
         whenever(viewState.maxHour).thenReturn(20)
 
-        val startTime = today().withHour(18)
-        val endTime = today().withHour(23)
+        val startTime = LocalDate.now().atTime(18, 0)
+        val endTime = LocalDate.now().atTime(23, 0)
 
         val event = createResolvedWeekViewEvent(startTime, endTime)
         val results = event.split(viewState)
 
         val expected = listOf(
-            Event(today().withHour(18), today().withTimeAtEndOfPeriod(20))
+            Event(
+                startTime = LocalDate.now().atTime(18, 0),
+                endTime = LocalDate.now().atTime(19, 59, 59, 999_999_999),
+            )
         )
 
-        val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
+        val expectedTimes = expected.map { it.startTime to it.endTime }
+        val resultTimes = results.map { it.startTime to it.endTime }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -103,19 +109,19 @@ class WeekViewEventSplitterTest {
         whenever(viewState.minHour).thenReturn(0)
         whenever(viewState.maxHour).thenReturn(24)
 
-        val startTime = today().withHour(11)
-        val endTime = (startTime + Days(1)).withHour(2)
+        val startTime = LocalDate.now().atTime(11, 0)
+        val endTime = (startTime.plusDays(1)).withHour(2)
 
         val event = createResolvedWeekViewEvent(startTime, endTime)
         val results = event.split(viewState)
 
         val expected = listOf(
-            Event(startTime, startTime.atEndOfDay),
-            Event(endTime.atStartOfDay, endTime)
+            Event(startTime, startTime.atEndOfDay()),
+            Event(endTime.atStartOfDay(), endTime)
         )
 
-        val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
+        val expectedTimes = expected.map { it.startTime to it.endTime }
+        val resultTimes = results.map { it.startTime to it.endTime }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -128,21 +134,31 @@ class WeekViewEventSplitterTest {
         whenever(viewState.minHour).thenReturn(minHour)
         whenever(viewState.maxHour).thenReturn(maxHour)
 
-        val startTime = today().withHour(5)
-        val endTime = (startTime + Days(2)).withHour(23)
+        val startTime = LocalDate.now().atTime(5, 0)
+        val endTime = (startTime.plusDays(2)).withHour(23)
 
         val event = createResolvedWeekViewEvent(startTime, endTime)
         val results = event.split(viewState)
 
-        val tomorrow = today() + Days(1)
+        val tomorrow = LocalDate.now().plusDays(1)
+
         val expected = listOf(
-            Event(startTime.withHour(minHour), startTime.withTimeAtEndOfPeriod(maxHour)),
-            Event(tomorrow.withHour(minHour), tomorrow.withTimeAtEndOfPeriod(maxHour)),
-            Event(endTime.withHour(minHour), endTime.withTimeAtEndOfPeriod(maxHour))
+            Event(
+                startTime = startTime.withHour(minHour),
+                endTime = startTime.withTimeAtEndOfPeriod(maxHour),
+            ),
+            Event(
+                startTime = tomorrow.atTime(minHour, 0),
+                endTime = tomorrow.atTime(maxHour, 0).minusNanos(1),
+            ),
+            Event(
+                startTime = endTime.withHour(minHour),
+                endTime = endTime.withTimeAtEndOfPeriod(maxHour),
+            )
         )
 
-        val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
+        val expectedTimes = expected.map { it.startTime to it.endTime }
+        val resultTimes = results.map { it.startTime to it.endTime }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -155,8 +171,8 @@ class WeekViewEventSplitterTest {
         whenever(viewState.minHour).thenReturn(minHour)
         whenever(viewState.maxHour).thenReturn(maxHour)
 
-        val startTime = today().withHour(8)
-        val endTime = (startTime + Days(1)).withHour(5)
+        val startTime = LocalDate.now().atTime(8, 0)
+        val endTime = startTime.plusDays(1).withHour(5)
 
         val event = createResolvedWeekViewEvent(startTime, endTime)
         val results = event.split(viewState)
@@ -165,8 +181,8 @@ class WeekViewEventSplitterTest {
             Event(startTime, startTime.withTimeAtEndOfPeriod(maxHour))
         )
 
-        val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
+        val expectedTimes = expected.map { it.startTime to it.endTime }
+        val resultTimes = results.map { it.startTime to it.endTime }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -179,8 +195,8 @@ class WeekViewEventSplitterTest {
         whenever(viewState.minHour).thenReturn(minHour)
         whenever(viewState.maxHour).thenReturn(maxHour)
 
-        val startTime = today().withHour(22)
-        val endTime = (startTime + Days(1)).withHour(9)
+        val startTime = LocalDate.now().atTime(22, 0)
+        val endTime = startTime.plusDays(1).withHour(9)
 
         val event = createResolvedWeekViewEvent(startTime, endTime)
         val results = event.split(viewState)
@@ -189,8 +205,8 @@ class WeekViewEventSplitterTest {
             Event(endTime.withHour(minHour), endTime)
         )
 
-        val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
+        val expectedTimes = expected.map { it.startTime to it.endTime }
+        val resultTimes = results.map { it.startTime to it.endTime }
 
         assertEquals(expectedTimes, resultTimes)
     }
@@ -200,21 +216,21 @@ class WeekViewEventSplitterTest {
         whenever(viewState.minHour).thenReturn(0)
         whenever(viewState.maxHour).thenReturn(24)
 
-        val startTime = today().withHour(11)
-        val endTime = (startTime + Days(2)).withHour(2)
+        val startTime = LocalDate.now().atTime(11, 0)
+        val endTime = startTime.plusDays(2).withHour(2)
 
         val event = createResolvedWeekViewEvent(startTime, endTime)
         val results = event.split(viewState)
 
-        val intermediateDate = startTime + Days(1)
+        val intermediateDate = startTime.plusDays(1)
         val expected = listOf(
-            Event(startTime, startTime.atEndOfDay),
-            Event(intermediateDate.atStartOfDay, intermediateDate.atEndOfDay),
-            Event(endTime.atStartOfDay, endTime)
+            Event(startTime, startTime.atEndOfDay()),
+            Event(intermediateDate.atStartOfDay(), intermediateDate.atEndOfDay()),
+            Event(endTime.atStartOfDay(), endTime)
         )
 
-        val expectedTimes = expected.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
-        val resultTimes = results.map { it.startTime.timeInMillis to it.endTime.timeInMillis }
+        val expectedTimes = expected.map { it.startTime to it.endTime }
+        val resultTimes = results.map { it.startTime to it.endTime }
 
         assertEquals(expectedTimes, resultTimes)
     }

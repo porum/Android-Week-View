@@ -2,40 +2,23 @@ package com.alamkanak.weekview.jsr310
 
 import com.alamkanak.weekview.PublicApi
 import com.alamkanak.weekview.WeekView
-import com.alamkanak.weekview.WeekViewEntity
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-
-@PublicApi
-fun <T : Any> WeekViewEntity.Event.Builder<T>.setStartTime(
-    startTime: LocalDateTime
-) = setStartTime(startTime.toCalendar())
-
-@PublicApi
-fun <T : Any> WeekViewEntity.Event.Builder<T>.setEndTime(
-    endTime: LocalDateTime
-) = setEndTime(endTime.toCalendar())
-
-@PublicApi
-fun WeekViewEntity.BlockedTime.Builder.setStartTime(
-    startTime: LocalDateTime
-) = setStartTime(startTime.toCalendar())
-
-@PublicApi
-fun WeekViewEntity.BlockedTime.Builder.setEndTime(
-    endTime: LocalDateTime
-) = setEndTime(endTime.toCalendar())
 
 /**
  * Returns the minimum date that [WeekView] will display as a [LocalDate], or null if none is set.
  * Events before this date will not be shown.
  */
 @PublicApi
+@Deprecated(
+    message = "Use minDate instead.",
+    replaceWith = ReplaceWith(
+        expression = "minDate",
+    ),
+)
 var WeekView.minDateAsLocalDate: LocalDate?
-    get() = minDate?.toLocalDate()
+    get() = minDate
     set(value) {
-        minDate = value?.toCalendar()
+        minDate = value
     }
 
 /**
@@ -43,61 +26,40 @@ var WeekView.minDateAsLocalDate: LocalDate?
  * Events after this date will not be shown.
  */
 @PublicApi
+@Deprecated(
+    message = "Use maxDate instead.",
+    replaceWith = ReplaceWith(
+        expression = "maxDate",
+    ),
+)
 var WeekView.maxDateAsLocalDate: LocalDate?
-    get() = maxDate?.toLocalDate()
+    get() = maxDate
     set(value) {
-        maxDate = value?.toCalendar()
+        maxDate = value
     }
 
 /**
  * Returns the first visible date as a [LocalDate].
  */
 @PublicApi
+@Deprecated(
+    message = "Use firstVisibleDate instead.",
+    replaceWith = ReplaceWith(
+        expression = "firstVisibleDate",
+    ),
+)
 val WeekView.firstVisibleDateAsLocalDate: LocalDate
-    get() = firstVisibleDate.toLocalDate()
+    get() = firstVisibleDate
 
 /**
  * Returns the last visible date as a [LocalDate].
  */
 @PublicApi
+@Deprecated(
+    message = "Use lastVisibleDate instead.",
+    replaceWith = ReplaceWith(
+        expression = "lastVisibleDate",
+    ),
+)
 val WeekView.lastVisibleDateAsLocalDate: LocalDate
-    get() = lastVisibleDate.toLocalDate()
-
-/**
- * Scrolls to the specified date. Any provided [LocalDate] that falls outside the range of
- * [WeekView.minDate] and [WeekView.maxDate] will be adjusted to fit into this range.
- *
- * @param date The [LocalDate] to scroll to.
- */
-@PublicApi
-fun WeekView.scrollToDate(date: LocalDate) {
-    scrollToDate(date.toCalendar())
-}
-
-/**
- * Scrolls to the specified date time. Any provided [LocalDateTime] that falls outside the range of
- * [WeekView.minDate] and [WeekView.maxDate], or [WeekView.minHour] and [WeekView.maxHour], will be
- * adjusted to fit into these ranges.
- *
- * @param dateTime The [LocalDateTime] to scroll to.
- */
-@PublicApi
-fun WeekView.scrollToDateTime(dateTime: LocalDateTime) {
-    scrollToDateTime(dateTime.toCalendar())
-}
-
-/**
- * Scrolls to the specified time. Any provided [LocalTime] that falls outside the range of
- * [WeekView.minHour] and [WeekView.maxHour] will be adjusted to fit into these ranges.
- *
- * @param time The [LocalTime] to scroll to.
- */
-@PublicApi
-fun WeekView.scrollToTime(time: LocalTime) {
-    scrollToTime(time.hour, time.minute)
-}
-
-@PublicApi
-fun WeekView.setDateFormatter(formatter: (LocalDate) -> String) {
-    setDateFormatter { formatter(it.toLocalDate()) }
-}
+    get() = lastVisibleDate

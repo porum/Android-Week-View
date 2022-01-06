@@ -1,6 +1,6 @@
 package com.alamkanak.weekview
 
-import java.util.Calendar
+import java.time.LocalDate
 
 internal class EventChipsFactory {
 
@@ -149,7 +149,9 @@ internal class EventChipsFactory {
             return
         }
 
-        eventChip.minutesFromStartHour = viewState.minutesFromStart(eventChip.startTime)
+        val startTime = eventChip.startTime
+        val hoursFromStart = startTime.hour - viewState.minHour
+        eventChip.minutesFromStartHour = hoursFromStart * 60 + startTime.minute
     }
 
     private fun expandColumnEventToMaxWidth(
@@ -250,14 +252,14 @@ internal class EventChipsFactory {
         return results
     }
 
-    private fun List<EventChip>.groupedByDate(): Map<Calendar, List<EventChip>> {
-        return groupBy { it.startTime.atStartOfDay }
+    private fun List<EventChip>.groupedByDate(): Map<LocalDate, List<EventChip>> {
+        return groupBy { it.startTime.toLocalDate() }
     }
 }
 
 private fun ResolvedWeekViewEntity.sanitize(viewState: ViewState): ResolvedWeekViewEntity {
     return if (endTime.isAtStartOfPeriod(hour = viewState.minHour)) {
-        createCopy(endTime = endTime - Millis(1))
+        createCopy(endTime = endTime.minusNanos(1))
     } else {
         this
     }
