@@ -141,6 +141,21 @@ data class WeekViewItem(
     internal fun collidesWith(other: WeekViewItem): Boolean = duration.overlapsWith(other.duration)
 }
 
+/**
+ * Creates an [WeekViewItem.Duration.AllDay] with the receiving [Calendar] as the date.
+ */
+fun Calendar.toAllDayDuration(): WeekViewItem.Duration.AllDay {
+    return WeekViewItem.Duration.AllDay(date = this.atStartOfDay)
+}
+
+/**
+ * Creates an [WeekViewItem.Duration.Bounded] with the receiving [Calendar] as the start time and
+ * the provided parameter as the end time.
+ */
+fun Calendar.toBoundedDurationUntil(endTime: Calendar): WeekViewItem.Duration.Bounded {
+    return WeekViewItem.Duration.Bounded(startTime = this, endTime = endTime)
+}
+
 private fun WeekViewItem.Duration.overlapsWith(other: WeekViewItem.Duration): Boolean {
     if (this is WeekViewItem.Duration.AllDay || other is WeekViewItem.Duration.AllDay) {
         return false

@@ -11,8 +11,9 @@ import com.alamkanak.weekview.WeekViewEntity
 import com.alamkanak.weekview.WeekViewItem
 import com.alamkanak.weekview.jsr310.setEndTime
 import com.alamkanak.weekview.jsr310.setStartTime
+import com.alamkanak.weekview.jsr310.toAllDayDuration
+import com.alamkanak.weekview.jsr310.toBoundedDurationUntil
 import com.alamkanak.weekview.sample.R
-import com.alamkanak.weekview.sample.util.toCalendar
 import java.time.LocalDateTime
 
 sealed class CalendarItem {
@@ -63,12 +64,9 @@ fun CalendarItem.Event.toWeekViewItem(context: Context): WeekViewItem {
     }
 
     val timing = if (isAllDay) {
-        WeekViewItem.Duration.AllDay(date = startTime.toLocalDate().toCalendar())
+        startTime.toAllDayDuration()
     } else {
-        WeekViewItem.Duration.Bounded(
-            startTime = startTime.toCalendar(),
-            endTime = endTime.toCalendar(),
-        )
+        startTime.toBoundedDurationUntil(endTime)
     }
 
     return WeekViewItem(
@@ -91,10 +89,7 @@ fun CalendarItem.BlockedTimeSlot.toWeekViewItem(context: Context): WeekViewItem 
     return WeekViewItem(
         id = id,
         title = "Unavailable",
-        duration = WeekViewItem.Duration.Bounded(
-            startTime = startTime.toCalendar(),
-            endTime = endTime.toCalendar(),
-        ),
+        duration = startTime.toBoundedDurationUntil(endTime),
         style = WeekViewItem.Style(
             backgroundColor = ContextCompat.getColor(context, R.color.gray_alpha10),
             cornerRadius = context.resources.getDimensionPixelSize(R.dimen.no_corner_radius),
