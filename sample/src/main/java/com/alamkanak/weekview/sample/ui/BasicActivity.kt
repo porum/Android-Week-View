@@ -71,7 +71,7 @@ class BasicActivity : AppCompatActivity() {
     }
 }
 
-private class BasicActivityWeekViewAdapter(
+class BasicActivityWeekViewAdapter(
     private val dragHandler: (Long, LocalDateTime, LocalDateTime) -> Unit,
     private val loadMoreHandler: (List<YearMonth>) -> Unit
 ) : WeekViewPagingAdapterJsr310<CalendarItem>() {

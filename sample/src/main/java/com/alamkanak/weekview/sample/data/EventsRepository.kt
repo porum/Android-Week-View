@@ -21,7 +21,7 @@ class EventsRepository(private val context: Context) {
 
     fun fetch(
         yearMonths: List<YearMonth>,
-        onSuccess: (List<CalendarItem>) -> Unit
+        onSuccess: (List<CalendarItem>) -> Unit,
     ) {
         val handlerThread = HandlerThread("events-fetching")
         handlerThread.start()
@@ -34,7 +34,7 @@ class EventsRepository(private val context: Context) {
 
             val calendarEntities = yearMonths.flatMap { yearMonth ->
                 apiEntities.mapIndexedNotNull { index, apiResult ->
-                    apiResult.toCalendarEntity(yearMonth, index)
+                    apiResult.toCalendarItem(yearMonth, index)
                 }
             }
 

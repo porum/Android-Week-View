@@ -45,7 +45,7 @@ class DiffResultTest {
         val existingEntity = Mocks.weekViewItem()
         val newEntity = existingEntity.copyWith(
             startTime = existingEntity.duration.startTime,
-            endTime = existingEntity.duration.endTime + Hours(1)
+            endTime = existingEntity.duration.endTime.plusMinutes(60),
         )
 
         val result = DiffResult.calculateDiff(
@@ -60,12 +60,12 @@ class DiffResultTest {
     @Test
     fun `New and updated entities are correctly recognized together`() {
         val startTime = Calendar.getInstance()
-        val endTime = startTime + Hours(1)
+        val endTime = startTime.plusMinutes(60)
 
         val existingEntity = Mocks.weekViewItem(startTime, endTime)
         val updatedEntity = existingEntity.copyWith(
             startTime = existingEntity.duration.startTime,
-            endTime = existingEntity.duration.endTime + Hours(1),
+            endTime = existingEntity.duration.endTime.plusMinutes(60),
         )
         val newEntity = Mocks.weekViewItem(startTime, endTime)
 

@@ -1,8 +1,7 @@
 package com.alamkanak.weekview.util
 
-import com.alamkanak.weekview.Hours
 import com.alamkanak.weekview.WeekViewItem
-import com.alamkanak.weekview.plus
+import com.alamkanak.weekview.plusMinutes
 import java.util.Calendar
 import kotlin.random.Random
 
@@ -14,7 +13,7 @@ internal object Mocks {
 
     fun weekViewItem(
         startTime: Calendar = Calendar.getInstance(),
-        endTime: Calendar = Calendar.getInstance() + Hours(1),
+        endTime: Calendar = Calendar.getInstance().plusMinutes(60),
     ): WeekViewItem {
         val id = Random.nextLong()
         return WeekViewItem(

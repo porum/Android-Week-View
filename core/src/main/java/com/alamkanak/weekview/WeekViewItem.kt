@@ -12,7 +12,7 @@ import java.util.Calendar
  * The item is rendered based on the information provided in its [style] and [configuration]
  * properties.
  */
-data class WeekViewItem(
+data class WeekViewItem internal constructor(
     val id: Long = 0L,
     val title: CharSequence,
     val subtitle: CharSequence? = null,
@@ -100,6 +100,67 @@ data class WeekViewItem(
         }
     }
 
+    companion object {
+        fun of(data: Any): Builder = Builder(data)
+    }
+
+    /**
+     * Builder to construct a [WeekViewItem]. A [WeekViewItem] needs an [id], a [title], and
+     * a [duration]. The latter can be a [WeekViewItem.Duration.AllDay] or a
+     * [WeekViewItem.Duration.Bounded].
+     */
+    class Builder internal constructor(private val data: Any) {
+
+        private var id: Long? = null
+        private var title: CharSequence? = null
+        private var subtitle: CharSequence? = null
+        private var duration: Duration? = null
+        private var style: Style = Style()
+        private var configuration = Configuration()
+
+        fun setId(id: Long): Builder {
+            this.id = id
+            return this
+        }
+
+        fun setTitle(title: CharSequence): Builder {
+            this.title = title
+            return this
+        }
+
+        fun setSubtitle(subtitle: CharSequence): Builder {
+            this.subtitle = subtitle
+            return this
+        }
+
+        fun setAllDayDuration(date: Calendar): Builder {
+            this.duration = Duration.AllDay(date)
+            return this
+        }
+
+        fun setBoundedDuration(startTime: Calendar, endTime: Calendar): Builder {
+            this.duration = Duration.Bounded(startTime, endTime)
+            return this
+        }
+
+        fun setStyle(style: Style): Builder {
+            this.style = style
+            return this
+        }
+
+        fun setConfiguration(configuration: Configuration): Builder {
+            this.configuration = configuration
+            return this
+        }
+
+        fun build(): WeekViewItem {
+            val id = requireNotNull(id) { "id == null" }
+            val title = requireNotNull(title) { "title == null" }
+            val duration = requireNotNull(duration) { "duration == null" }
+            return WeekViewItem(id, title, subtitle, duration, style, configuration, data)
+        }
+    }
+
     internal val isAllDay: Boolean = duration is Duration.AllDay
 
     internal val isNotAllDay: Boolean = !isAllDay
@@ -139,21 +200,6 @@ data class WeekViewItem(
     }
 
     internal fun collidesWith(other: WeekViewItem): Boolean = duration.overlapsWith(other.duration)
-}
-
-/**
- * Creates an [WeekViewItem.Duration.AllDay] with the receiving [Calendar] as the date.
- */
-fun Calendar.toAllDayDuration(): WeekViewItem.Duration.AllDay {
-    return WeekViewItem.Duration.AllDay(date = this.atStartOfDay)
-}
-
-/**
- * Creates an [WeekViewItem.Duration.Bounded] with the receiving [Calendar] as the start time and
- * the provided parameter as the end time.
- */
-fun Calendar.toBoundedDurationUntil(endTime: Calendar): WeekViewItem.Duration.Bounded {
-    return WeekViewItem.Duration.Bounded(startTime = this, endTime = endTime)
 }
 
 private fun WeekViewItem.Duration.overlapsWith(other: WeekViewItem.Duration): Boolean {

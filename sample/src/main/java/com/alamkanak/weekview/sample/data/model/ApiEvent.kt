@@ -7,7 +7,7 @@ import java.time.LocalTime
 import java.time.YearMonth
 
 interface ApiResult {
-    fun toCalendarEntity(yearMonth: YearMonth, index: Int): CalendarItem?
+    fun toCalendarItem(yearMonth: YearMonth, index: Int): CalendarItem?
 }
 
 data class ApiEvent(
@@ -18,16 +18,16 @@ data class ApiEvent(
     @SerializedName("duration") val duration: Int,
     @SerializedName("color") val color: String,
     @SerializedName("is_canceled") val isCanceled: Boolean,
-    @SerializedName("is_all_day") val isAllDay: Boolean
+    @SerializedName("is_all_day") val isAllDay: Boolean,
 ) : ApiResult {
 
-    override fun toCalendarEntity(yearMonth: YearMonth, index: Int): CalendarItem? {
+    override fun toCalendarItem(yearMonth: YearMonth, index: Int): CalendarItem? {
         return try {
             val startTime = LocalTime.parse(startTime)
             val startDateTime = yearMonth.atDay(dayOfMonth).atTime(startTime)
             val endDateTime = startDateTime.plusMinutes(duration.toLong())
             CalendarItem.Event(
-                id = "100${yearMonth.year}00${yearMonth.monthValue}00$index".toLong(),
+                id = generateId(yearMonth, index),
                 title = title,
                 location = location,
                 startTime = startDateTime,
@@ -45,16 +45,16 @@ data class ApiEvent(
 data class ApiBlockedTime(
     @SerializedName("day_of_month") val dayOfMonth: Int,
     @SerializedName("start_time") val startTime: String,
-    @SerializedName("duration") val duration: Int
+    @SerializedName("duration") val duration: Int,
 ) : ApiResult {
 
-    override fun toCalendarEntity(yearMonth: YearMonth, index: Int): CalendarItem? {
+    override fun toCalendarItem(yearMonth: YearMonth, index: Int): CalendarItem? {
         return try {
             val startTime = LocalTime.parse(startTime)
             val startDateTime = yearMonth.atDay(dayOfMonth).atTime(startTime)
             val endDateTime = startDateTime.plusMinutes(duration.toLong())
             CalendarItem.BlockedTimeSlot(
-                id = "200${yearMonth.year}00${yearMonth.monthValue}00$index".toLong(),
+                id = generateId(yearMonth, index),
                 startTime = startDateTime,
                 endTime = endDateTime
             )
@@ -62,4 +62,11 @@ data class ApiBlockedTime(
             null
         }
     }
+}
+
+private fun generateId(yearMonth: YearMonth, index: Int): Long {
+    val eventNumber = index.toString().padStart(length = 4, padChar = '0')
+    val year = yearMonth.year * 1_000_000
+    val month = yearMonth.monthValue * 1_000
+    return "$year$month$eventNumber".toLong()
 }

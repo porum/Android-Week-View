@@ -9,10 +9,10 @@ import android.text.style.TypefaceSpan
 import androidx.core.content.ContextCompat
 import com.alamkanak.weekview.WeekViewEntity
 import com.alamkanak.weekview.WeekViewItem
+import com.alamkanak.weekview.jsr310.setAllDayDuration
+import com.alamkanak.weekview.jsr310.setBoundedDuration
 import com.alamkanak.weekview.jsr310.setEndTime
 import com.alamkanak.weekview.jsr310.setStartTime
-import com.alamkanak.weekview.jsr310.toAllDayDuration
-import com.alamkanak.weekview.jsr310.toBoundedDurationUntil
 import com.alamkanak.weekview.sample.R
 import java.time.LocalDateTime
 
@@ -63,40 +63,46 @@ fun CalendarItem.Event.toWeekViewItem(context: Context): WeekViewItem {
         }
     }
 
-    val timing = if (isAllDay) {
-        startTime.toAllDayDuration()
-    } else {
-        startTime.toBoundedDurationUntil(endTime)
-    }
-
-    return WeekViewItem(
-        id = id,
-        title = title,
-        subtitle = subtitle,
-        duration = timing,
-        style = WeekViewItem.Style(
-            textColor = textColor,
-            backgroundColor = backgroundColor,
-            borderWidth = borderWidth,
-            borderColor = color,
-        ),
-        configuration = WeekViewItem.Configuration.foreground(),
-        data = this,
+    val style = WeekViewItem.Style(
+        textColor = textColor,
+        backgroundColor = backgroundColor,
+        borderWidth = borderWidth,
+        borderColor = color,
     )
+
+    val config = WeekViewItem.Configuration.foreground()
+
+    return WeekViewItem.of(this)
+        .setId(id)
+        .setTitle(title)
+        .setSubtitle(subtitle)
+        .apply {
+            if (isAllDay) {
+                setAllDayDuration(startTime.toLocalDate())
+            } else {
+                setBoundedDuration(startTime, endTime)
+            }
+        }
+        .setStyle(style)
+        .setConfiguration(config)
+        .build()
 }
 
 fun CalendarItem.BlockedTimeSlot.toWeekViewItem(context: Context): WeekViewItem {
-    return WeekViewItem(
-        id = id,
-        title = "Unavailable",
-        duration = startTime.toBoundedDurationUntil(endTime),
-        style = WeekViewItem.Style(
-            backgroundColor = ContextCompat.getColor(context, R.color.gray_alpha10),
-            cornerRadius = context.resources.getDimensionPixelSize(R.dimen.no_corner_radius),
-        ),
-        configuration = WeekViewItem.Configuration.background(),
-        data = this,
+    val style = WeekViewItem.Style(
+        backgroundColor = ContextCompat.getColor(context, R.color.gray_alpha10),
+        cornerRadius = context.resources.getDimensionPixelSize(R.dimen.no_corner_radius),
     )
+
+    val config = WeekViewItem.Configuration.background()
+
+    return WeekViewItem.of(this)
+        .setId(id)
+        .setTitle("Unavailable")
+        .setBoundedDuration(startTime, endTime)
+        .setStyle(style)
+        .setConfiguration(config)
+        .build()
 }
 
 fun CalendarItem.toWeekViewEntity(): WeekViewEntity {
