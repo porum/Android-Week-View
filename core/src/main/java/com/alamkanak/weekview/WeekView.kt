@@ -1619,6 +1619,16 @@ class WeekView @JvmOverloads constructor(
         }
 
         /**
+         * Called whenever [WeekView] needs to initially load elements of a given period. This
+         * method is also called after [refresh] has been invoked.
+         *
+         * @param startDate A [Calendar] of the first date of the month that needs to be fetched
+         * @param endDate A [Calendar] of the last date of the month that needs to be fetched
+         */
+        @PublicApi
+        abstract fun onLoadInitial(startDate: Calendar, endDate: Calendar)
+
+        /**
          * Called whenever [WeekView] needs to fetch new elements of a given month in order to allow
          * for a smooth scrolling experience.
          *
@@ -1630,7 +1640,7 @@ class WeekView @JvmOverloads constructor(
          * @param endDate A [Calendar] of the last date of the month that needs to be fetched
          */
         @PublicApi
-        open fun onLoadMore(startDate: Calendar, endDate: Calendar) = Unit
+        abstract fun onLoadMore(startDate: Calendar, endDate: Calendar)
 
         /**
          * Refreshes the elements presented by this adapter. All cached elements will be removed and
@@ -1652,37 +1662,42 @@ class WeekView @JvmOverloads constructor(
 
             val periodsToFetch = eventsCache.determinePeriodsToFetch(fetchRange)
             if (periodsToFetch.isNotEmpty()) {
-                fetchPeriods(periodsToFetch)
+                fetchPeriods(periodsToFetch, isInitial = eventsCache.isEmpty)
             }
         }
 
-        private fun fetchPeriods(periods: List<Period>) {
-            val grouped = periods.groupConsecutivePeriods()
-
+        private fun fetchPeriods(periods: List<Period>, isInitial: Boolean) {
             for (period in periods) {
                 // We add an empty list for the periods to avoid multiple fetch attempts.
                 eventsCache.reserve(period)
             }
 
-            for (group in grouped) {
-                val first = group.first()
-                val last = group.last()
-                onLoadMore(first.startDate, last.endDate)
-            }
-        }
-
-        private fun List<Period>.groupConsecutivePeriods(): List<List<Period>> {
-            val emptyList = mutableListOf<MutableList<Period>>()
-            return fold(emptyList) { accumulator, period ->
-                val lastPeriodInList = accumulator.lastOrNull()?.last()
-                val isConsecutive = lastPeriodInList?.next == period
-                if (accumulator.isEmpty() || !isConsecutive) {
-                    accumulator.add(mutableListOf(period))
-                } else {
-                    accumulator.last().add(period)
+            if (isInitial) {
+                val firstPeriod = periods.first()
+                val lastPeriod = periods.last()
+                onLoadInitial(firstPeriod.startDate, lastPeriod.endDate)
+            } else {
+                val groups = periods.groupConsecutivePeriods()
+                for (group in groups) {
+                    val firstPeriod = group.first()
+                    val lastPeriod = group.last()
+                    onLoadMore(firstPeriod.startDate, lastPeriod.endDate)
                 }
-                accumulator
             }
         }
+    }
+}
+
+private fun List<Period>.groupConsecutivePeriods(): List<List<Period>> {
+    val emptyList = mutableListOf<MutableList<Period>>()
+    return fold(emptyList) { accumulator, period ->
+        val lastPeriodInList = accumulator.lastOrNull()?.last()
+        val isConsecutive = lastPeriodInList?.next == period
+        if (accumulator.isEmpty() || !isConsecutive) {
+            accumulator.add(mutableListOf(period))
+        } else {
+            accumulator.last().add(period)
+        }
+        accumulator
     }
 }

@@ -9,6 +9,7 @@ import com.alamkanak.weekview.jsr310.minDateAsLocalDate
 import com.alamkanak.weekview.sample.data.model.CalendarEntity
 import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
 import com.alamkanak.weekview.sample.databinding.ActivityLimitedBinding
+import com.alamkanak.weekview.sample.util.GenericAction
 import com.alamkanak.weekview.sample.util.defaultDateTimeFormatter
 import com.alamkanak.weekview.sample.util.genericViewModel
 import com.alamkanak.weekview.sample.util.setupWithWeekView
@@ -27,7 +28,7 @@ class LimitedActivity : AppCompatActivity() {
     }
 
     private val adapter: LimitedActivityWeekViewAdapter by lazy {
-        LimitedActivityWeekViewAdapter(loadMoreHandler = this::onLoadMore)
+        LimitedActivityWeekViewAdapter(actionHandler = viewModel::handleAction)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,14 +45,10 @@ class LimitedActivity : AppCompatActivity() {
             adapter.submitList(viewState.entities)
         }
     }
-
-    private fun onLoadMore(yearMonths: List<YearMonth>) {
-        viewModel.fetchEvents(yearMonths)
-    }
 }
 
 private class LimitedActivityWeekViewAdapter(
-    private val loadMoreHandler: (List<YearMonth>) -> Unit
+    private val actionHandler: (GenericAction) -> Unit,
 ) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
 
     override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
@@ -76,7 +73,13 @@ private class LimitedActivityWeekViewAdapter(
         context.showToast("Empty view long-clicked at ${defaultDateTimeFormatter.format(time)}")
     }
 
+    override fun onLoadInitial(startDate: LocalDate, endDate: LocalDate) {
+        val yearMonths = yearMonthsBetween(startDate, endDate)
+        actionHandler(GenericAction.LoadEvents(yearMonths, clearExisting = true))
+    }
+
     override fun onLoadMore(startDate: LocalDate, endDate: LocalDate) {
-        loadMoreHandler(yearMonthsBetween(startDate, endDate))
+        val yearMonths = yearMonthsBetween(startDate, endDate)
+        actionHandler(GenericAction.LoadEvents(yearMonths, clearExisting = false))
     }
 }

@@ -102,6 +102,10 @@ abstract class WeekViewPagingAdapterJsr310<T> : WeekView.PagingAdapter<T>() {
         onRangeChanged(firstVisibleDate.toLocalDate(), lastVisibleDate.toLocalDate())
     }
 
+    override fun onLoadInitial(startDate: Calendar, endDate: Calendar) {
+        onLoadInitial(startDate.toLocalDate(), endDate.toLocalDate())
+    }
+
     final override fun onLoadMore(startDate: Calendar, endDate: Calendar) {
         onLoadMore(startDate.toLocalDate(), endDate.toLocalDate())
     }
@@ -141,6 +145,15 @@ abstract class WeekViewPagingAdapterJsr310<T> : WeekView.PagingAdapter<T>() {
     open fun onRangeChanged(firstVisibleDate: LocalDate, lastVisibleDate: LocalDate) = Unit
 
     /**
+     * Called whenever [WeekView] needs to initially load elements of a given period. This method is
+     * also called after [refresh] has been invoked.
+     *
+     * @param startDate A [LocalDate] of the first date of the month that needs to be fetched
+     * @param endDate A [LocalDate] of the last date of the month that needs to be fetched
+     */
+    abstract fun onLoadInitial(startDate: LocalDate, endDate: LocalDate)
+
+    /**
      * Called whenever [WeekView] needs to fetch new elements of a given month in order to allow for
      * a smooth scrolling experience.
      *
@@ -151,5 +164,5 @@ abstract class WeekViewPagingAdapterJsr310<T> : WeekView.PagingAdapter<T>() {
      * @param startDate A [LocalDate] of the first date of the month that needs to be fetched
      * @param endDate A [LocalDate] of the last date of the month that needs to be fetched
      */
-    open fun onLoadMore(startDate: LocalDate, endDate: LocalDate) = Unit
+    abstract fun onLoadMore(startDate: LocalDate, endDate: LocalDate)
 }

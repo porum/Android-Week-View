@@ -7,6 +7,7 @@ import androidx.appcompat.widget.Toolbar
 import com.alamkanak.weekview.WeekView
 import com.alamkanak.weekview.jsr310.scrollToDateTime
 import com.alamkanak.weekview.sample.R
+import com.alamkanak.weekview.sample.ui.BasicActivityWeekViewAdapter
 import java.time.LocalDateTime
 
 private enum class WeekViewType(val value: Int) {
@@ -29,6 +30,7 @@ fun Toolbar.setupWithWeekView(weekView: WeekView) {
     setOnMenuItemClickListener { item ->
         when (item.itemId) {
             R.id.action_today -> {
+                (weekView.adapter as? BasicActivityWeekViewAdapter)?.refresh()
                 weekView.scrollToDateTime(dateTime = LocalDateTime.now())
                 true
             }

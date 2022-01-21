@@ -14,6 +14,7 @@ import com.alamkanak.weekview.sample.R
 import com.alamkanak.weekview.sample.data.model.CalendarEntity
 import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
 import com.alamkanak.weekview.sample.databinding.FragmentWeekBinding
+import com.alamkanak.weekview.sample.util.GenericAction
 import com.alamkanak.weekview.sample.util.genericViewModel
 import com.alamkanak.weekview.sample.util.setupWithWeekView
 import com.alamkanak.weekview.sample.util.yearMonthsBetween
@@ -51,7 +52,7 @@ class WeekFragment : Fragment(R.layout.fragment_week) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         binding.toolbarContainer.toolbar.setupWithWeekView(binding.weekView)
 
-        val adapter = FragmentWeekViewAdapter(loadMoreHandler = viewModel::fetchEvents)
+        val adapter = FragmentWeekViewAdapter(actionHandler = viewModel::handleAction)
         binding.weekView.adapter = adapter
 
         // Limit WeekView to the current month
@@ -69,13 +70,18 @@ class WeekFragment : Fragment(R.layout.fragment_week) {
 }
 
 private class FragmentWeekViewAdapter(
-    private val loadMoreHandler: (List<YearMonth>) -> Unit
+    private val actionHandler: (GenericAction) -> Unit,
 ) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
 
     override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
 
-    override fun onLoadMore(
-        startDate: LocalDate,
-        endDate: LocalDate
-    ) = loadMoreHandler(yearMonthsBetween(startDate, endDate))
+    override fun onLoadInitial(startDate: LocalDate, endDate: LocalDate) {
+        val yearMonths = yearMonthsBetween(startDate, endDate)
+        actionHandler(GenericAction.LoadEvents(yearMonths, clearExisting = true))
+    }
+
+    override fun onLoadMore(startDate: LocalDate, endDate: LocalDate) {
+        val yearMonths = yearMonthsBetween(startDate, endDate)
+        actionHandler(GenericAction.LoadEvents(yearMonths, clearExisting = false))
+    }
 }

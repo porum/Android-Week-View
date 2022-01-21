@@ -74,6 +74,9 @@ internal class PaginatedEventsCache : EventsCache() {
 
     private val eventsByPeriod: ArrayMap<Period, MutableList<ResolvedWeekViewEntity>> = ArrayMap()
 
+    val isEmpty: Boolean
+        get() = allEvents.isEmpty()
+
     override fun update(events: List<ResolvedWeekViewEntity>) {
         val groupedEvents = events.groupBy { it.period }
         for ((period, periodEvents) in groupedEvents) {

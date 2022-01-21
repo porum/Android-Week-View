@@ -7,6 +7,7 @@ import com.alamkanak.weekview.jsr310.WeekViewPagingAdapterJsr310
 import com.alamkanak.weekview.sample.data.model.CalendarEntity
 import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
 import com.alamkanak.weekview.sample.databinding.ActivityCustomFontBinding
+import com.alamkanak.weekview.sample.util.GenericAction
 import com.alamkanak.weekview.sample.util.defaultDateTimeFormatter
 import com.alamkanak.weekview.sample.util.genericViewModel
 import com.alamkanak.weekview.sample.util.setupWithWeekView
@@ -14,7 +15,6 @@ import com.alamkanak.weekview.sample.util.showToast
 import com.alamkanak.weekview.sample.util.yearMonthsBetween
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.YearMonth
 
 class CustomFontActivity : AppCompatActivity() {
 
@@ -23,7 +23,7 @@ class CustomFontActivity : AppCompatActivity() {
     }
 
     private val adapter: CustomFontActivityWeekViewAdapter by lazy {
-        CustomFontActivityWeekViewAdapter(loadMoreHandler = this::onLoadMore)
+        CustomFontActivityWeekViewAdapter(actionHandler = viewModel::handleAction)
     }
 
     private val viewModel by genericViewModel()
@@ -38,14 +38,10 @@ class CustomFontActivity : AppCompatActivity() {
             adapter.submitList(viewState.entities)
         }
     }
-
-    private fun onLoadMore(yearMonths: List<YearMonth>) {
-        viewModel.fetchEvents(yearMonths)
-    }
 }
 
 private class CustomFontActivityWeekViewAdapter(
-    private val loadMoreHandler: (List<YearMonth>) -> Unit
+    private val actionHandler: (GenericAction) -> Unit,
 ) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
 
     override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
@@ -70,7 +66,13 @@ private class CustomFontActivityWeekViewAdapter(
         context.showToast("Empty view long-clicked at ${defaultDateTimeFormatter.format(time)}")
     }
 
+    override fun onLoadInitial(startDate: LocalDate, endDate: LocalDate) {
+        val yearMonths = yearMonthsBetween(startDate, endDate)
+        actionHandler(GenericAction.LoadEvents(yearMonths, clearExisting = true))
+    }
+
     override fun onLoadMore(startDate: LocalDate, endDate: LocalDate) {
-        loadMoreHandler(yearMonthsBetween(startDate, endDate))
+        val yearMonths = yearMonthsBetween(startDate, endDate)
+        actionHandler(GenericAction.LoadEvents(yearMonths, clearExisting = false))
     }
 }

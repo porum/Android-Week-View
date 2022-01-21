@@ -10,6 +10,7 @@ import com.alamkanak.weekview.sample.R
 import com.alamkanak.weekview.sample.data.model.CalendarEntity
 import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
 import com.alamkanak.weekview.sample.databinding.ActivityStaticBinding
+import com.alamkanak.weekview.sample.util.GenericAction
 import com.alamkanak.weekview.sample.util.defaultDateTimeFormatter
 import com.alamkanak.weekview.sample.util.genericViewModel
 import com.alamkanak.weekview.sample.util.setupWithWeekView
@@ -17,7 +18,6 @@ import com.alamkanak.weekview.sample.util.showToast
 import com.alamkanak.weekview.sample.util.yearMonthsBetween
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 
 class StaticActivity : AppCompatActivity() {
@@ -32,7 +32,7 @@ class StaticActivity : AppCompatActivity() {
 
     private val adapter: StaticActivityWeekViewAdapter by lazy {
         StaticActivityWeekViewAdapter(
-            loadMoreHandler = this::onLoadMore,
+            actionHandler = viewModel::handleAction,
             rangeChangeHandler = this::onRangeChanged
         )
     }
@@ -61,10 +61,6 @@ class StaticActivity : AppCompatActivity() {
         }
     }
 
-    private fun onLoadMore(yearMonths: List<YearMonth>) {
-        viewModel.fetchEvents(yearMonths)
-    }
-
     private fun onRangeChanged(startDate: LocalDate, endDate: LocalDate) {
         binding.dateRangeTextView.text = buildDateRangeText(startDate, endDate)
     }
@@ -77,8 +73,8 @@ class StaticActivity : AppCompatActivity() {
 }
 
 private class StaticActivityWeekViewAdapter(
+    private val actionHandler: (GenericAction) -> Unit,
     private val rangeChangeHandler: (LocalDate, LocalDate) -> Unit,
-    private val loadMoreHandler: (List<YearMonth>) -> Unit
 ) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
 
     override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
@@ -103,8 +99,14 @@ private class StaticActivityWeekViewAdapter(
         context.showToast("Empty view long-clicked at ${defaultDateTimeFormatter.format(time)}")
     }
 
+    override fun onLoadInitial(startDate: LocalDate, endDate: LocalDate) {
+        val yearMonths = yearMonthsBetween(startDate, endDate)
+        actionHandler(GenericAction.LoadEvents(yearMonths, clearExisting = true))
+    }
+
     override fun onLoadMore(startDate: LocalDate, endDate: LocalDate) {
-        loadMoreHandler(yearMonthsBetween(startDate, endDate))
+        val yearMonths = yearMonthsBetween(startDate, endDate)
+        actionHandler(GenericAction.LoadEvents(yearMonths, clearExisting = false))
     }
 
     override fun onRangeChanged(firstVisibleDate: LocalDate, lastVisibleDate: LocalDate) {

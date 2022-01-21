@@ -14,12 +14,26 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle.MEDIUM
 
+sealed class GenericAction {
+
+    data class LoadEvents(
+        val yearMonths: List<YearMonth>,
+        val clearExisting: Boolean,
+    ) : GenericAction()
+
+    data class FinishDrag(
+        val id: Long,
+        val newStartTime: LocalDateTime,
+        val newEndTime: LocalDateTime,
+    ) : GenericAction()
+}
+
 data class GenericViewState(
-    val entities: List<CalendarEntity> = emptyList()
+    val entities: List<CalendarEntity> = emptyList(),
 )
 
-sealed class GenericAction {
-    data class ShowSnackbar(val message: String, val undoAction: () -> Unit) : GenericAction()
+sealed class GenericEffect {
+    data class ShowSnackbar(val message: String, val undoAction: () -> Unit) : GenericEffect()
 }
 
 class GenericViewModel(
@@ -29,20 +43,44 @@ class GenericViewModel(
     private val _viewState = MutableLiveData<GenericViewState>()
     val viewState: LiveData<GenericViewState> = _viewState
 
-    private val _actions = MutableLiveData<Event<GenericAction>>()
-    val actions: LiveData<Event<GenericAction>> = _actions
+    private val _effects = MutableLiveData<Event<GenericEffect>>()
+    val effects: LiveData<Event<GenericEffect>> = _effects
 
     private val currentEntities: List<CalendarEntity>
         get() = _viewState.value?.entities.orEmpty()
 
-    fun fetchEvents(yearMonths: List<YearMonth>) {
+    fun handleAction(action: GenericAction) {
+        when (action) {
+            is GenericAction.LoadEvents -> {
+                if (action.clearExisting) {
+                    clearEvents()
+                }
+                fetchEvents(action.yearMonths)
+            }
+            is GenericAction.FinishDrag -> {
+                handleDrag(
+                    id = action.id,
+                    newStartTime = action.newStartTime,
+                    newEndTime = action.newEndTime,
+                )
+            }
+        }
+    }
+
+    private fun clearEvents() {
+        if (_viewState.value != null) {
+            _viewState.value = _viewState.value?.copy(entities = emptyList())
+        }
+    }
+
+    private fun fetchEvents(yearMonths: List<YearMonth>) {
         eventsRepository.fetch(yearMonths = yearMonths) { entities ->
             val existingEntities = _viewState.value?.entities.orEmpty()
             _viewState.value = GenericViewState(entities = existingEntities + entities)
         }
     }
 
-    fun handleDrag(id: Long, newStartTime: LocalDateTime, newEndTime: LocalDateTime) {
+    private fun handleDrag(id: Long, newStartTime: LocalDateTime, newEndTime: LocalDateTime) {
         val existingEntity = currentEntities
             .filterIsInstance<CalendarEntity.Event>()
             .first { it.id == id }
@@ -62,11 +100,11 @@ class GenericViewModel(
     ) {
         val newDateTime = updatedEntity.startTime.format(DateTimeFormatter.ofLocalizedDateTime(MEDIUM))
 
-        val action = GenericAction.ShowSnackbar(
+        val action = GenericEffect.ShowSnackbar(
             message = "Moved ${updatedEntity.title} to $newDateTime",
             undoAction = { updateEntity(existingEntity) },
         )
-        _actions.postEvent(action)
+        _effects.postEvent(action)
     }
 
     private fun updateEntity(newEntity: CalendarEntity.Event) {

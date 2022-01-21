@@ -10,7 +10,8 @@ import com.alamkanak.weekview.jsr310.setDateFormatter
 import com.alamkanak.weekview.sample.data.model.CalendarEntity
 import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
 import com.alamkanak.weekview.sample.databinding.ActivityBasicBinding
-import com.alamkanak.weekview.sample.util.GenericAction.ShowSnackbar
+import com.alamkanak.weekview.sample.util.GenericAction
+import com.alamkanak.weekview.sample.util.GenericEffect.ShowSnackbar
 import com.alamkanak.weekview.sample.util.defaultDateTimeFormatter
 import com.alamkanak.weekview.sample.util.genericViewModel
 import com.alamkanak.weekview.sample.util.setupWithWeekView
@@ -20,7 +21,6 @@ import com.alamkanak.weekview.sample.util.yearMonthsBetween
 import com.google.android.material.snackbar.Snackbar
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -42,8 +42,7 @@ class BasicActivity : AppCompatActivity() {
         binding.toolbarContainer.toolbar.setupWithWeekView(binding.weekView)
 
         val adapter = BasicActivityWeekViewAdapter(
-            dragHandler = viewModel::handleDrag,
-            loadMoreHandler = viewModel::fetchEvents,
+            actionHandler = viewModel::handleAction,
         )
         binding.weekView.adapter = adapter
 
@@ -57,7 +56,7 @@ class BasicActivity : AppCompatActivity() {
             adapter.submitList(viewState.entities)
         }
 
-        viewModel.actions.subscribeToEvents(this) { action ->
+        viewModel.effects.subscribeToEvents(this) { action ->
             when (action) {
                 is ShowSnackbar -> {
                     Snackbar
@@ -70,9 +69,10 @@ class BasicActivity : AppCompatActivity() {
     }
 }
 
-private class BasicActivityWeekViewAdapter(
-    private val dragHandler: (Long, LocalDateTime, LocalDateTime) -> Unit,
-    private val loadMoreHandler: (List<YearMonth>) -> Unit
+class BasicActivityWeekViewAdapter(
+    private val actionHandler: (GenericAction) -> Unit,
+//    private val dragHandler: (Long, LocalDateTime, LocalDateTime) -> Unit,
+//    private val loadMoreHandler: (List<YearMonth>) -> Unit
 ) : WeekViewPagingAdapterJsr310<CalendarEntity>() {
 
     override fun onCreateEntity(item: CalendarEntity): WeekViewEntity = item.toWeekViewEntity()
@@ -89,7 +89,13 @@ private class BasicActivityWeekViewAdapter(
 
     override fun onDragAndDropFinished(data: CalendarEntity, newStartTime: LocalDateTime, newEndTime: LocalDateTime) {
         if (data is CalendarEntity.Event) {
-            dragHandler(data.id, newStartTime, newEndTime)
+            actionHandler(
+                GenericAction.FinishDrag(
+                    id = data.id,
+                    newStartTime = newStartTime,
+                    newEndTime = newEndTime,
+                )
+            )
         }
     }
 
@@ -97,8 +103,14 @@ private class BasicActivityWeekViewAdapter(
         context.showToast("Empty view long-clicked at ${defaultDateTimeFormatter.format(time)}")
     }
 
+    override fun onLoadInitial(startDate: LocalDate, endDate: LocalDate) {
+        val yearMonths = yearMonthsBetween(startDate, endDate)
+        actionHandler(GenericAction.LoadEvents(yearMonths, clearExisting = true))
+    }
+
     override fun onLoadMore(startDate: LocalDate, endDate: LocalDate) {
-        loadMoreHandler(yearMonthsBetween(startDate, endDate))
+        val yearMonths = yearMonthsBetween(startDate, endDate)
+        actionHandler(GenericAction.LoadEvents(yearMonths, clearExisting = false))
     }
 
     override fun onVerticalScrollPositionChanged(currentOffset: Float, distance: Float) {
