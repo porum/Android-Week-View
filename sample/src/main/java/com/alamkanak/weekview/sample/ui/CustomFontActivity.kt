@@ -3,10 +3,10 @@ package com.alamkanak.weekview.sample.ui
 import android.graphics.RectF
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.alamkanak.weekview.WeekViewEntity
+import com.alamkanak.weekview.WeekViewItem
 import com.alamkanak.weekview.jsr310.WeekViewPagingAdapterJsr310
 import com.alamkanak.weekview.sample.data.model.CalendarItem
-import com.alamkanak.weekview.sample.data.model.toWeekViewEntity
+import com.alamkanak.weekview.sample.data.model.toWeekViewItem
 import com.alamkanak.weekview.sample.databinding.ActivityCustomFontBinding
 import com.alamkanak.weekview.sample.util.defaultDateTimeFormatter
 import com.alamkanak.weekview.sample.util.genericViewModel
@@ -47,7 +47,7 @@ private class CustomFontActivityWeekViewAdapter(
     private val loadMoreHandler: (List<YearMonth>) -> Unit
 ) : WeekViewPagingAdapterJsr310<CalendarItem>() {
 
-    override fun onCreateEntity(item: CalendarItem): WeekViewEntity = item.toWeekViewEntity()
+    override fun onCreateItem(item: CalendarItem): WeekViewItem = item.toWeekViewItem(context)
 
     override fun onEventClick(data: CalendarItem, bounds: RectF) {
         if (data is CalendarItem.Event) {
