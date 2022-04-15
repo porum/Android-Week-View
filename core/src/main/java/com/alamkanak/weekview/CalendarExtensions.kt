@@ -43,6 +43,12 @@ internal fun Calendar.plusDays(days: Int): Calendar {
     }
 }
 
+internal fun Calendar.plusHours(hours: Int): Calendar {
+    return copy().apply {
+        add(Calendar.HOUR_OF_DAY, hours)
+    }
+}
+
 internal fun Calendar.addDays(days: Int) {
     add(Calendar.DATE, days)
 }
@@ -50,6 +56,12 @@ internal fun Calendar.addDays(days: Int) {
 internal fun Calendar.minusDays(days: Int): Calendar {
     return copy().apply {
         add(Calendar.DATE, days * -1)
+    }
+}
+
+internal fun Calendar.minusHours(hours: Int): Calendar {
+    return copy().apply {
+        add(Calendar.HOUR_OF_DAY, hours * -1)
     }
 }
 

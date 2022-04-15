@@ -354,6 +354,7 @@ class WeekView @JvmOverloads constructor(
     var headerBottomShadowColor: Int
         @RequiresApi(api = 29)
         get() = viewState.headerBackgroundWithShadowPaint.shadowLayerColor
+        @RequiresApi(api = 29)
         set(value) {
             val paint = viewState.headerBackgroundWithShadowPaint
             paint.setShadowLayer(headerBottomShadowRadius.toFloat(), 0f, 0f, value)
@@ -367,6 +368,7 @@ class WeekView @JvmOverloads constructor(
     var headerBottomShadowRadius: Int
         @RequiresApi(api = 29)
         get() = viewState.headerBackgroundWithShadowPaint.shadowLayerRadius.roundToInt()
+        @RequiresApi(api = 29)
         set(value) {
             val paint = viewState.headerBackgroundWithShadowPaint
             paint.setShadowLayer(value.toFloat(), 0f, 0f, headerBottomShadowColor)
