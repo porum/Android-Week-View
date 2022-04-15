@@ -1479,11 +1479,7 @@ class WeekView @JvmOverloads constructor(
          * @param item The item of type [T] that was submitted to [WeekView]
          * @return A [WeekViewItem] that will be rendered in [WeekView]
          */
-        open fun onCreateItem(item: T): WeekViewItem {
-            throw RuntimeException(
-                "You called submitList() on WeekView's adapter, but didn't implement onCreateItem()."
-            )
-        }
+        abstract fun onCreateItem(item: T): WeekViewItem
 
         /**
          * Called for each element of type [T] that was submitted to this adapter. This method must
