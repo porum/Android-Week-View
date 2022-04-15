@@ -1492,7 +1492,11 @@ class WeekView @JvmOverloads constructor(
         @Deprecated(
             message = "Use onCreateItem instead to create a WeekViewItem.",
         )
-        abstract fun onCreateEntity(item: T): WeekViewEntity
+        open fun onCreateEntity(item: T): WeekViewEntity {
+            throw RuntimeException(
+                "You called submitList() on WeekView's adapter, but didn't implement onCreateEntity()."
+            )
+        }
 
         /**
          * Returns the data of the [WeekViewEntity.Event] that the user clicked on as well as the
