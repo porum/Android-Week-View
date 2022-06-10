@@ -98,6 +98,12 @@
 
         <!-- Hour separators -->
         <attr name="showHourSeparator" format="boolean" />
+        <attr name="hourSeparator" format="enum">
+            <enum name="line" value="0" />
+            <enum name="dashLine" value="1" />
+        </attr>
+        <attr name="hourSeparatorDashGap" format="dimension" />
+        <attr name="hourSeparatorDashWidth" format="dimension" />
         <attr name="hourSeparatorColor" format="color" />
         <attr name="hourSeparatorStrokeWidth" format="dimension" />
 
